@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GeffenWeverse</title>
+<style>
+/* ===== 1. VARIABLES Y BASE ===== */
+:root{--bg:#000;--card:#161616;--line:#2c2c2c;--tx:#fff;--mu:#8a8a8a;--ac:#22d3ee;--brand:#00c4cc;color-scheme:dark}
+[data-theme=light]{--bg:#f4f5f7;--card:#fff;--line:#e5e7eb;--tx:#0b0b0b;--mu:#6b7280;color-scheme:light}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--tx);font:13px Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;min-height:100vh;
+ padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button,select{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px;border-radius:6px}
+.wrap{max-width:900px;margin:0 auto;padding:8px 8px 90px}
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h2{font-size:15px;font-weight:700;margin-bottom:8px}
+.row{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 0;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.row:last-child{border-bottom:0}.row .t{flex:1}.row .t b{display:block;font-weight:600}
+.row small,.mu{display:block;color:var(--mu);font-size:11.5px;margin-top:3px}
+.chev{width:14px;height:14px;color:var(--mu)}
+
+/* ===== 2. INICIO ===== */
+.hd{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
+.logo{font-weight:800;font-size:13px;background:linear-gradient(90deg,#60a5fa,#c084fc,#f472b6,#facc15);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hd .ic{display:flex;gap:14px}.hd .i{width:16px;height:16px}
+.tabs{display:flex;gap:10px;padding:12px;font-size:12px;font-weight:600;overflow-x:auto}
+.tabs a:nth-child(1){background:#052e16;color:#22c55e;border:1px solid #166534;border-radius:5px;padding:1px 7px;font-size:10px}
+.tabs a:nth-child(2){color:#60a5fa}.tabs a:nth-child(3){color:#c084fc}.tabs a:nth-child(4){color:#fb923c}.tabs a:nth-child(5){color:#f472b6}
+.feat{display:flex;align-items:center;gap:6px;padding:4px 12px 10px}
+.feat small{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;width:100%;display:block;margin:0 0 6px}
+.av{width:34px;height:34px;border-radius:50%;border:2px solid #fff;flex:none}
+.g1{background:linear-gradient(135deg,#fecaca,#f472b6 60%,#881337)}.g2{background:linear-gradient(135deg,#cbd5e1,#475569 60%,#0f172a)}.g3{background:linear-gradient(135deg,#fda4af,#be123c 60%,#3b0764)}
+.feed .top{display:flex;justify-content:space-between;align-items:center}
+.pill{font-size:8px;font-weight:700;background:#1f1f23;color:#e5e5e5;border:1px solid #3a3a40;border-radius:99px;padding:2px 8px}
+.yel{color:#facc15;font-size:9px;margin:6px 0}
+.photo{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:radial-gradient(ellipse at 50% 15%,#ffffff2e,transparent 40%),linear-gradient(#2b2f38,#0a0a0c)}
+.photo i{position:absolute;bottom:30%;width:9%;height:26%;border-radius:40% 40% 10% 10%;background:linear-gradient(#3b3b42,#0d0d10)}
+.photo i::before{content:"";position:absolute;top:-34%;left:18%;width:64%;height:38%;border-radius:50%;background:#c7a98f}
+.photo u{position:absolute;left:6%;right:6%;bottom:12%;height:24%;background:#0a0a0c;border-radius:6px}
+.chip{position:absolute;left:8px;bottom:8px;background:#3c3c42d9;border-radius:99px;padding:3px 8px;font-size:8px;font-weight:700;color:#fff}
+.bm{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:#282830d9;display:grid;place-items:center;color:#fff}
+.bm .i{width:11px;height:11px}
+.acts{display:flex;justify-content:space-between;margin-top:8px;font-size:9px;color:#60a5fa}
+.vids{display:flex;gap:8px}.vids div{position:relative;flex:1;aspect-ratio:3/4.6;border-radius:12px}
+.vids div:nth-child(1){background:radial-gradient(circle at 50% 28%,#e9d5ff,transparent 25%),linear-gradient(#3b2a5c,#1e3a8a 55%,#0b1224)}
+.vids div:nth-child(2){background:radial-gradient(circle at 50% 35%,#e5e5e5,transparent 22%),linear-gradient(#555,#8a7f72 55%,#1c1c1c)}
+.vids div:nth-child(3){background:radial-gradient(circle at 50% 30%,#d4d4d8,transparent 22%),linear-gradient(#4b4b52,#1f2937 55%,#050505)}
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:900px;display:flex;justify-content:space-around;align-items:center;
+ background:var(--bg);border-top:1px solid var(--line);padding:9px 0 calc(9px + env(safe-area-inset-bottom,0px));z-index:5}
+.nav a{color:var(--mu)}.nav a.on{color:#22c55e}
+.nav .mid{border:1px solid #52525b;border-radius:50%;padding:6px;margin-top:-16px;background:var(--bg);color:var(--tx)}
+
+/* ===== 3. MI PERFIL + MENÚ ===== */
+.cover{height:130px;background:#8fa5b1;margin:0 4px}
+.ph{position:relative;height:56px;margin:0 4px}
+.avl{position:absolute;left:8px;top:-54px;width:104px;height:104px;border-radius:50%;background:#435470;border:4px solid var(--bg)}
+.edit{position:absolute;right:6px;top:8px;border:2px solid var(--line);border-radius:99px;padding:6px 14px;font-weight:600;font-size:13px}
+.info{padding:0 14px 12px}.nm{display:flex;align-items:center;gap:5px;font-size:22px;font-weight:800}
+.ok{width:18px;height:18px;fill:var(--ac);stroke:none}
+.meta{display:flex;gap:14px;color:var(--mu);font-size:13px;margin:8px 0}.meta span{display:flex;gap:4px;align-items:center}.meta .i{width:15px;height:15px}
+.cnt{display:flex;gap:18px;color:var(--mu)}.cnt b{color:var(--tx)}
+.ptabs{display:flex;justify-content:space-between;border-bottom:2px solid var(--line);margin:0 4px 0;padding:0 8px}
+.ptabs span{padding:10px 8px 8px;color:var(--mu);margin-bottom:-2px;border-bottom:3px solid transparent}
+.ptabs .on{color:var(--tx);font-weight:700;border-color:var(--ac)}
+.post{display:flex;gap:10px;padding:14px 8px;margin:0 4px 14px;border-bottom:2px solid var(--line)}
+.post .av{width:42px;height:42px;border:0;background:#435470}
+.post .h{display:flex;align-items:center;gap:4px;color:var(--mu)}.post .h strong{color:var(--tx);font-size:15px}
+.post p{margin:4px 0 10px;line-height:1.3}.post .a{display:flex;justify-content:space-between;color:var(--mu);padding-right:8px}.post .a span{display:flex;gap:6px;align-items:center}
+.cols{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;align-items:start}
+.ico{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;flex:none;color:#fff}.ico .i{width:13px;height:13px}
+.ico.g{background:#5a5a5a}
+
+/* ===== 4. CONFIGURACIÓN ===== */
+.bar{display:flex;align-items:center;gap:16px;padding:14px 8px}.bar h1{font-size:22px;font-weight:800}
+.mbtn{margin-left:auto;padding:8px;display:grid;place-items:center}.mbtn .i{width:24px;height:24px}
+.off{opacity:.4;cursor:not-allowed}
+.cnt a:hover{text-decoration:underline}
+.inp{display:block;width:100%;background:transparent;border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--tx);font:inherit;margin-top:10px}.btn2{background:var(--ac);color:#000;font-weight:700;border-radius:99px;padding:10px 20px;margin-top:12px}
+.cart{position:relative;display:grid;place-items:center;padding:4px;margin-right:10px}.cart .i{width:20px;height:20px}
+.cart::after{content:attr(data-tip);position:absolute;left:0;top:calc(100% + 6px);background:#111;border:1px solid #333;color:#fff;font-size:10px;font-weight:700;padding:5px 9px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:.15s;z-index:6}.cart:hover::after,.cart:focus-visible::after{opacity:1}
+.stabs{display:flex;gap:6px;background:#fff;border-top:1px solid #eceef1;border-bottom:1px solid #e5e7eb;padding:0 14px}
+.stabs a{padding:12px 14px 10px;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-1px}.stabs a.on{color:#000;font-weight:800;border-color:#2563eb}
+.sw.lp{background:#2563eb}.sw.lp[aria-checked=true]{background:#22c55e}
+.radio{display:grid;place-items:center}.radio.on{color:#22c55e}.radio.off{color:#3b82f6}
+.sbox{flex:1;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:9px 14px}.sbox .i{width:16px;height:16px;color:var(--mu)}
+.sbox input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--tx);font:inherit;font-size:14px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 4px 12px}.chip2{border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-weight:600;color:var(--mu);white-space:nowrap}.chip2.on{background:var(--ac);color:#000;border-color:var(--ac)}
+.bell{position:relative;display:grid;place-items:center}.dot{position:absolute;top:-7px;right:-9px;background:#ef4444;color:#fff;font-size:8px;font-weight:800;min-width:14px;height:14px;border-radius:99px;display:grid;place-items:center;padding:0 3px}
+.nb{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;color:#000;display:grid;place-items:center;border:2px solid var(--card)}.nb .i{width:11px;height:11px}
+.ud{width:9px;height:9px;border-radius:50%;background:#3b82f6;flex:none}
+.lt .card{background:#fff;border:1px solid #e5e7eb}
+.lupa{width:40px;height:40px;border-radius:50%;border:1px solid #dcdfe4;background:#fff;display:grid;place-items:center;flex:none}.lupa .i{width:18px;height:18px}
+.sbox2{display:none;align-items:center;gap:8px;background:#fff;border:1px solid #dcdfe4;border-radius:99px;padding:10px 14px;margin-top:14px}.sbox2.on{display:flex}
+.sbox2 input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:14px;color:#000}.sbox2 .i{width:16px;height:16px;color:#6b7280}
+.fila{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.tb{display:inline-flex;align-items:center;gap:6px;border:1px solid #dcdfe4;background:#fff;border-radius:99px;padding:9px 14px;font-weight:700;font-size:12px;color:#000}.tb .i{width:14px;height:14px}.tb.pay{background:#2563eb;border-color:#2563eb;color:#fff}
+.lt .pill{background:#f3f4f6;color:#111;border-color:#e5e7eb}.lt .usr input{width:18px;height:18px;flex:none}
+.heart{width:34px;height:34px;border-radius:50%;border:1px solid #dcdfe4;display:grid;place-items:center;flex:none;color:#6b7280}.heart.on{color:#ef4444}.heart.on .i{fill:#ef4444}
+#modal{position:fixed;inset:0;background:#0009;display:grid;place-items:center;z-index:30;padding:20px}
+.mbox{background:#fff;color:#000;border-radius:16px;padding:24px;max-width:340px;width:100%;text-align:center;font-size:15px}.mbox div{display:flex;gap:10px;justify-content:center;margin-top:8px}
+.btn3{border:1px solid #dcdfe4;border-radius:99px;padding:10px 26px;font-weight:700;margin-top:12px}
+.sbtn{width:22px;height:22px;border:2px solid currentColor;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12px;line-height:1}
+.shorts{height:calc(100dvh - 64px - env(safe-area-inset-top,0px));max-width:480px;margin:0 auto;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none}.shorts::-webkit-scrollbar{display:none}
+.short{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;align-items:flex-end;justify-content:space-between;padding:16px 12px 20px;color:#fff;overflow:hidden}
+.short .tit{position:absolute;top:12px;left:14px;font-weight:800;font-size:15px;text-shadow:0 1px 4px #0008}
+.short .info{flex:1;min-width:0;padding-right:12px;text-shadow:0 1px 4px #0009}.short .rail{display:flex;flex-direction:column;gap:16px;align-items:center}
+.rb2{display:grid;place-items:center;gap:2px;font-size:11px;font-weight:700;color:#fff}.rb2 .i{width:30px;height:30px;filter:drop-shadow(0 1px 3px #0008)}.rb2.on .i{fill:#facc15;stroke:#facc15}
+.bar>a:first-child{padding:8px;margin:-8px 0 -8px -8px;display:grid;place-items:center}.bar>a:first-child .i{width:22px;height:22px}
+.bk{display:flex;width:max-content;padding:8px;margin:-26px 0 12px -10px;color:#000}
+.ptabs a{flex:1;text-align:center;padding:10px 8px 8px;color:var(--mu);margin-bottom:-2px;border-bottom:3px solid transparent;font-weight:600}.ptabs a.on{color:var(--tx);border-color:var(--ac);font-weight:700}
+.usr{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line)}.usr:last-child{border-bottom:0}
+.usr .av{width:46px;height:46px;border:0}.usr b{display:block;font-size:14px}.usr .mu{font-size:12.5px;margin-top:2px}
+a.usr:hover{background:#ffffff0a}.faq details{border-bottom:1px solid var(--line);padding:14px 0}.faq details:last-child{border-bottom:0}.faq summary{font-weight:600;cursor:pointer}.faq p.r{margin-top:8px;color:var(--mu);line-height:1.4}
+.faq summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"›";font-size:20px;color:var(--mu);transform:rotate(90deg);transition:transform .15s}.faq details[open] summary::after{transform:rotate(-90deg)}
+.faq a{color:var(--ac);text-decoration:underline;word-break:break-all}
+.sel{position:relative;display:flex;align-items:center}
+.sel select{appearance:none;-webkit-appearance:none;padding-right:20px;font-size:12px;font-weight:600;min-width:110px;text-align:right}
+.sel select option{background:#222;color:#fff}.sel .i{position:absolute;right:0;width:14px;height:14px;pointer-events:none}
+.sw{width:42px;height:24px;border-radius:99px;background:#3a3a3a;position:relative;flex:none;transition:.15s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}
+.sw[aria-checked=true]{background:var(--ac)}.sw[aria-checked=true]::after{transform:translateX(18px)}
+.rd{width:20px;height:20px;border-radius:50%;border:2px solid #3a3a3a;display:grid;place-items:center;flex:none}
+.rd::after{content:"";width:7px;height:7px;border-radius:50%;background:#3a3a3a}
+[aria-checked=true]>.rd{background:var(--ac);border-color:var(--ac)}[aria-checked=true]>.rd::after{background:#000}
+[aria-checked=true]>.t>b{color:var(--ac)}
+
+/* ===== 5. TIENDA Y LOGIN (páginas claras) ===== */
+.lt{--tx:#0b0b0b;--mu:#6b7280;--line:#e5e7eb;background:#f6f7f9;color:#0b0b0b;min-height:100vh}
+.sbar{background:#fff;min-height:47px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:6px 14px;font-size:13px;font-weight:500}
+.sbar>div{display:flex;align-items:center}.sbar a,.sbar button{padding:0 12px;border-left:1px solid #e5e7eb}
+.sbar a:first-child,.sbar .l{border:0;padding-left:0}
+.lg{font-weight:800;font-size:16px;margin-right:14px}.lg i{color:var(--brand)}.dd::after{content:" ▾";font-size:10px}
+.shop{max-width:1080px;margin:0 auto;padding:52px 24px 90px}.shop h1{font-size:26px;font-weight:800}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px;color:#6b7280}
+.empty .i{width:52px;height:52px;color:#b0b3b8;margin-bottom:16px;stroke-width:1.6}
+.ord{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;margin-top:12px;display:flex;justify-content:space-between}
+.up{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:50%;background:#2563eb;display:grid;place-items:center}
+.up path:first-child{stroke:#000}.up path:last-child{stroke:#fff}
+.lcard{max-width:675px;margin:16px auto;background:#fff;border-radius:24px;box-shadow:0 8px 32px #0000001a;padding:48px 44px 40px}
+.lcard .lg{font-size:20px;display:block;margin-bottom:34px}.lg2{display:grid;grid-template-columns:1fr 270px;gap:30px}
+.lcard h1{font-size:24px;line-height:1.3;font-weight:800}
+.rt{display:flex;flex-direction:column;align-items:center}
+.pb{position:relative;width:100%;height:44px;border:1px solid #dcdfe4;border-radius:99px;background:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14px;margin-bottom:12px}
+.pb:hover,.rb:hover{background:#fafafa}
+.pb em{position:absolute;top:-9px;right:16px;background:#5b8def;color:#fff;font:800 8px sans-serif;padding:4px 8px;border-radius:99px}
+.soc{display:flex;gap:12px;margin-top:6px}.rb{width:44px;height:44px;border:1px solid #dcdfe4;border-radius:50%;background:#fff;display:grid;place-items:center}
+.sw2{margin-top:64px;text-align:center;color:#8a8f98}.sw2 a{color:#000;text-decoration:underline}
+.foot{max-width:1100px;margin:30px auto 0;border-top:1px solid #eceef1;padding:36px 14px 24px;display:flex;flex-wrap:wrap;gap:12px 18px;justify-content:space-between;align-items:center}
+.foot nav{display:flex;flex-wrap:wrap;gap:8px 18px}.foot .sel{border:1px solid #dcdfe4;border-radius:8px;padding:8px 12px;background:#fff}
+.foot .sel select{text-align:left;min-width:120px;color:#000}.foot .sel .i{right:10px}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#111;color:#fff;border-radius:99px;padding:10px 18px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:20;max-width:90%;text-align:center}
+#toast.on{opacity:1}
+@media(max-width:640px){.cols,.lg2{grid-template-columns:1fr}.lcard{padding:30px 20px}.sw2{margin-top:30px}.shop{padding-top:30px}}
+</style>
+</head>
+<body>
+
+<!-- ICONOS (sprite reutilizable) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="back" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
+<symbol id="menu" viewBox="0 0 24 24"><path d="M4 9h16M4 15h16"/></symbol>
+<symbol id="star" viewBox="0 0 24 24"><path d="m12 3 2.700 5.600 6.100.9-4.400 4.300 1 6.100L12 17l-5.400 2.900 1-6.100L3.200 9.500l6.100-.9z"/></symbol>
+<symbol id="cart" viewBox="0 0 24 24"><path d="M3 4h2l2.400 11h10.200l2-8H6M9 20h.01M17 20h.01"/></symbol>
+<symbol id="faq" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.500 9.500a2.500 2.500 0 1 1 3.500 2.300c-.7.400-1 .9-1 1.700M12 17v.01"/></symbol>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a2 2 0 0 0 3.4 0"/></symbol>
+<symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+<symbol id="down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="bm" viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10"/></symbol>
+<symbol id="users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+<symbol id="dl" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></symbol>
+<symbol id="plus" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></symbol>
+<symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
+<symbol id="tr" viewBox="0 0 24 24"><path d="M3 5h10M8 3v2M5 9c1 3 4 5 7 6M11 9c-1 3-4 5-7 6M13 21l4-10 4 10M14.500 18h5"/></symbol>
+<symbol id="auto" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13-6l2 2M20 12a8 8 0 0 1-13 6l-2-2M19 4v4h-4M5 20v-4h4"/></symbol>
+<symbol id="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.900 4.900l1.400 1.400M17.700 17.700l1.400 1.400M2 12h2M20 12h2M4.900 19.100l1.400-1.400M17.700 6.300l1.400-1.400"/></symbol>
+<symbol id="moon" viewBox="0 0 24 24"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/></symbol>
+<symbol id="half" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24"><path d="M20.800 5.600a5.500 5.500 0 0 0-7.800 0L12 6.700l-1-1.100a5.500 5.500 0 0 0-7.800 7.800L12 22l8.800-8.600a5.500 5.500 0 0 0 0-7.800z"/></symbol>
+<symbol id="cmt" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.500 7.200L3 21l1.800-5.500A8 8 0 1 1 21 12z"/></symbol>
+<symbol id="rt" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></symbol>
+<symbol id="share" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></symbol>
+<symbol id="ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11"/><path d="m7 12.500 3.200 3.200L17 9" stroke="#fff" stroke-width="3" fill="none"/></symbol>
+<symbol id="pin" viewBox="0 0 24 24"><path d="M12 22s7-6.200 7-12a7 7 0 0 0-14 0c0 5.800 7 12 7 12z"/><circle cx="12" cy="10" r="2.500"/></symbol>
+<symbol id="cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></symbol>
+<symbol id="bag" viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7zM9 8a3 3 0 0 1 6 0"/></symbol>
+<symbol id="card" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 12h.01M11 12h.01M15 12h.01"/></symbol>
+<symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></symbol>
+<symbol id="doc" viewBox="0 0 24 24"><path d="M8 3h8l4 4v14H8zM11 12h6M11 16h6"/></symbol>
+<symbol id="mega" viewBox="0 0 24 24"><path d="M3 11v3l12 5V6zM15 9a4 4 0 0 1 0 6M6 15l1 5h3"/></symbol>
+<symbol id="map" viewBox="0 0 24 24"><path d="M3 6l5-2 8 2 5-2v14l-5 2-8-2-5 2zM8 4v14M16 6v14"/></symbol>
+<symbol id="book" viewBox="0 0 24 24"><path d="M5 4h14v16H5zM5 17h14M9 9h6"/></symbol>
+<symbol id="mic" viewBox="0 0 24 24"><circle cx="15" cy="8" r="5"/><path d="m11 12-8 9"/></symbol>
+<symbol id="clip" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM9 11h1M13 11h3M9 16h1M13 16h3"/></symbol>
+<symbol id="alert" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M26 14v16M26 37v.010"/></symbol>
+<symbol id="live" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.200 7.800a6 6 0 0 1 0 8.400M7.800 16.200a6 6 0 0 1 0-8.400M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5"/></symbol>
+</defs></svg>
+
+<div id="app"></div>
+<div id="toast" role="status"></div>
+
+<script>
+/* ===== 6. UTILIDADES ===== */
+const I = (n, c = '') => `<svg class="i ${c}"><use href="#${n}"/></svg>`;
+const $ = s => document.querySelector(s);
+const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+                set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 2600); }
+
+/* Tema de pantalla: light | dark | device */
+const mq = matchMedia('(prefers-color-scheme: light)');
+function applyTheme(mode) {
+  const light = mode === 'light' || (mode === 'device' && mq.matches);
+  document.documentElement.dataset.theme = light ? 'light' : 'dark';
+}
+let themeMode = store.get('gw-theme') || 'device';
+applyTheme(themeMode);
+mq.addEventListener('change', () => themeMode === 'device' && applyTheme('device'));
+
+/* ===== 7. DATOS (conecta aquí tu backend) ===== */
+const pedidos = []; /* Solo pedidos hechos en Starship Legacy Shop. Ej: {id:"SL-0001",fecha:"13/11/2026",estado:"En preparación",total:"USD $25.00",articulos:"Álbum x1"} */
+/* Rol del usuario, elegido después de entrar: 'astroturista' (fan) o 'estrella' (Estrella Creadora) */
+const rolNombre = () => ({ astroturista: 'Astroturista', estrella: 'Estrella Creadora' }[store.get('gw-rol')] || 'Astroturista');
+const Auth = {
+  start(modo, proveedor) {
+    /* TODO: autenticación real (Appwrite / Supabase / Firebase). Por ahora se simula que salió bien. */
+    /* Después del registro (o del login si aún no eligió rol) aparece “Hola, ¿Eres?” antes de entrar a Inicio */
+    location.hash = (modo === 'registro' || !store.get('gw-rol')) ? '#rol' : '#inicio';
+  }
+};
+
+/* Listas de personas: { nombre, id }  ->  conecta aquí tu backend (id se muestra como @id) */
+const listaSiguiendo = [1, 2, 3, 4, 5, 6].map(n => ({ nombre: `Username ${n}`, id: `username${n}` }));   /* A los que sigues */
+const listaSeguidores = [1, 2, 3, 4, 5, 6].map(n => ({ nombre: `Seguidor ${n}`, id: `seguidor${n}` })); /* Los que te siguen */
+
+/* Artistas de Starship Legacy. Cada uno abre su WikiGeffen en #wiki-<slug> */
+const artistas = [
+  { slug: 'kim-heewon', nombre: 'Kim Heewon', tipo: 'Cantante y Actriz' },
+  { slug: 'njz', nombre: 'NJZ', tipo: 'Grupo Musical' },
+  { slug: 'sbc', nombre: 'SBC', tipo: 'Grupo Musical' },
+  { slug: 'kiss-of-heaven', nombre: 'KISS OF HEAVEN', tipo: 'Grupo Musical' },
+  { slug: 'pink-pop', nombre: 'Pink Pop', tipo: 'Grupo Musical' },
+  { slug: 'got', nombre: 'GOT', tipo: 'Grupo Musical' }
+];
+/* Preguntas frecuentes (luego se llenan): { pregunta, respuesta } */
+const enlaceSE = `<a href="https://starship-ent.org" target="_blank" rel="noopener">starship-ent.org</a>`;
+const listaFaq = [
+  { pregunta: '1 - ¿Qué es Starship Legacy?',
+    respuesta: 'Starship es un conglomerado multifacético e internacional: no solo distribuye música y firma artistas, también es una academia, un estudio, una producción, un concepto, una plataforma de streaming, una comunidad, una tienda virtual y física, Fandom x Artista y Artista x Fandom, y mucho más, porque todos somos uno y uno somos todos.' },
+  { pregunta: '2 - ¿Puedo estar en STARSHIP?',
+    respuesta: `Claro que puedes. Existen dos formas: la academia, donde pagas $3 dólares la mensualidad, virtual internacional y presencial solo en República Dominicana. Si eres dominicano y quieres estudiar virtual, lo puedes hacer. Llena el formulario que aparece en: ${enlaceSE}` },
+  { pregunta: '3 - ¿Puedo trabajar en STARSHIP?',
+    respuesta: `Claro que puedes. Llena el formulario que aparece en: ${enlaceSE}. Llena los datos, acepta los requisitos y envía.` },
+  { pregunta: '4 - ¿Soy artista independiente y quiero colaborar con un artista, modelo y/o actriz/actor?',
+    respuesta: `Claro que sí puedes. Ponte en contacto con el chatbot que está en la parte inferior derecha de ${enlaceSE} y díselo, te guiará.` },
+  { pregunta: '5 - ¿Dudas, quejas o sugerencias?',
+    respuesta: `Comunícate con nuestro soporte en X: <a href="https://x.com/starship_faq" target="_blank" rel="noopener">https://x.com/starship_faq</a>` },
+  { pregunta: '6 - ¿Notas que algún usuario en esta app/web u otra se hace pasar por un artista (o sufre acoso o ciberbullying)?',
+    respuesta: 'Manda capturas y nombres de usuario (“@”). ¡Nuestros artistas están siempre protegidos!' }
+];
+
+/* ===== Datos y ayudantes de las secciones del menú ===== */
+const J = { get: (k, d) => { try { return JSON.parse(store.get('gw-' + k)) ?? d; } catch (e) { return d; } }, set: (k, v) => store.set('gw-' + k, JSON.stringify(v)) };
+const esc = s => String(s).replace(/[&<>\"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+/* Códigos digitales válidos (conecta tu backend). Al canjearse, pasan a “Multimedia comprada”. GEFFEN-DEMO es solo de prueba. */
+const codigosValidos = { 'GEFFEN-DEMO': { titulo: 'Álbum digital de prueba' } };
+const cupones = [];  /* { codigo, descripcion, vence } */
+const anuncios = [{ titulo: '¡Bienvenido a GeffenWeverse!', fecha: '13/11/2026', texto: 'Aquí publicaremos las novedades del conglomerado Starship Legacy.' }];
+/* Restaura interruptores y listas guardadas (preferencias de cada usuario en su navegador) */
+function applyPrefs() {
+  document.querySelectorAll('[data-pref]').forEach(el => {
+    const v = store.get('gw-' + el.dataset.pref);
+    if (v === null) return;
+    if (el.matches('select')) el.value = v; else el.setAttribute('aria-checked', v);
+  });
+}
+const barra = (t, sub = '', back = '#menu') => `<header class="bar"><a href="${back}" data-back aria-label="Volver">${I('back')}</a><h1>${t}${sub ? `<span class="mu" style="font-weight:400;font-size:12px;margin:2px 0 0">${sub}</span>` : ''}</h1></header>`;
+const vacio = t => `<p class="mu" style="text-align:center;padding:28px 0;margin:0">${t}</p>`;
+const tog = (k, t, d, on) => `<div class="row"><span class="t"><b>${t}</b><small>${d}</small></span><button class="sw" role="switch" aria-checked="${on}" aria-label="${t}" data-switch data-pref="${k}"></button></div>`;
+const proximamente = t => () => `<div class="wrap">${barra(t)}<section class="card">${vacio('Próximamente: esta sección estará disponible pronto.')}</section></div>`;
+
+/* Barra superior de Starship Legacy Shop + pestañas (Mis Pedidos | Comprar) */
+const tiendaTop = act => `<header class="sbar"><div><a class="l" href="#menu" data-back aria-label="Volver" style="padding-right:12px">${I('back')}</a><a class="lg l" href="#inicio"><i>Starship Legacy</i> Shop</a><button class="dd">ES</button><button class="dd">USD $</button></div>
+    <div><button data-act="salir" style="color:#4b5563">Cerrar sesión</button><a href="#faq">Ayuda</a></div></header>
+    <nav class="stabs" aria-label="Tienda"><a href="#pedidos" data-replace class="${act === 'pedidos' ? 'on' : ''}">Mis Pedidos</a><a href="#comprar" data-replace class="${act === 'comprar' ? 'on' : ''}">Comprar</a></nav>`;
+
+/* Starship Listing Party (radio FM): activada por defecto. Verde = activada, azul = apagada */
+const radioOn = () => store.get('gw-radio') !== 'false';
+
+/* Publicaciones buscables (conecta tu backend): { autor, id, texto, href } */
+const publicaciones = [{ autor: 'Profile Name', id: 'username', texto: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Hic nihil fuit, quod quaereremus.', href: '#perfil' }];
+
+/* ===== BÚSQUEDA: artistas, creadores, publicaciones y ayuda (ignora mayúsculas y tildes) ===== */
+const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+let buscarTipo = 'todo';
+function resultados(q, tipo) {
+  const n = norm(q.trim());
+  const gente = [...listaSiguiendo, ...listaSeguidores].filter((u, i, a) => a.findIndex(x => x.id === u.id) === i);
+  const grupos = [
+    { t: 'artistas', n: n ? 'Artistas' : 'Artistas sugeridos', items: artistas.map(a => ({ href: '#wiki-' + a.slug, nombre: a.nombre, sub: a.tipo })) },
+    { t: 'creadores', n: 'Creadores', items: gente.map(u => ({ nombre: u.nombre, sub: '@' + u.id })) },
+    { t: 'publicaciones', n: 'Publicaciones', items: publicaciones.map(p => ({ href: p.href, nombre: p.autor, sub: '@' + p.id + ' · ' + p.texto })) },
+    { t: 'ayuda', n: 'Ayuda (FAQ)', items: listaFaq.map(f => ({ href: '#faq', nombre: f.pregunta, sub: '' })) }
+  ];
+  const html = grupos.filter(g => tipo === 'todo' ? (n || g.t === 'artistas') : g.t === tipo).map(g => {
+    const items = g.items.filter(x => !n || norm(x.nombre + ' ' + x.sub).includes(n));
+    if (!items.length) return '';
+    return `<section class="card"><h2>${g.n}</h2>${items.map((x, i) => {
+      const inner = `<span class="av g${i % 3 + 1}"></span><div style="flex:1;min-width:0"><b>${esc(x.nombre)}</b>${x.sub ? `<span class="mu">${esc(x.sub)}</span>` : ''}</div>`;
+      return x.href ? `<a class="usr" href="${x.href}">${inner}${I('chev', 'chev')}</a>` : `<div class="usr">${inner}</div>`;
+    }).join('')}</section>`;
+  }).join('');
+  return html || vacio(`No hay resultados para “${esc(q.trim())}”`);
+}
+
+/* ===== NOTIFICACIONES (conecta tu backend) =====
+   tipos: follow (te siguieron) | starlight (explosión de Starlight = Like en tu publicación o comentario)
+          comentario (comentaron tu publicación) | respuesta (respondieron tu comentario) */
+const avisos = [
+  { id: 'n1', tipo: 'follow', usuario: 'Username 1', hace: 'hace 2 min' },
+  { id: 'n2', tipo: 'starlight', usuario: 'Seguidor 1', objetivo: 'tu publicación', hace: 'hace 10 min' },
+  { id: 'n3', tipo: 'comentario', usuario: 'Username 2', texto: '¡Qué bonito!', hace: 'hace 25 min' },
+  { id: 'n4', tipo: 'respuesta', usuario: 'Seguidor 2', texto: 'Totalmente de acuerdo', hace: 'hace 1 h' },
+  { id: 'n5', tipo: 'starlight', usuario: 'Username 3', objetivo: 'tu comentario', hace: 'hace 3 h' },
+  { id: 'n6', tipo: 'follow', usuario: 'Seguidor 3', hace: 'ayer' }
+];
+let avisosTipo = 'todo';
+const leidas = () => J.get('avisos-leidos', []);
+const sinLeer = () => avisos.filter(n => !leidas().includes(n.id)).length;
+function listaAvisos(tipo) {
+  const L = leidas();
+  const grupo = { seguidores: ['follow'], starlight: ['starlight'], comentarios: ['comentario', 'respuesta'] }[tipo];
+  const items = avisos.filter(n => !grupo || grupo.includes(n.tipo));
+  if (!items.length) return vacio('Aún no tienes notificaciones');
+  const color = { follow: '#60a5fa', starlight: '#facc15', comentario: '#22c55e', respuesta: '#22c55e' };
+  const icono = { follow: 'user', starlight: 'star', comentario: 'cmt', respuesta: 'cmt' };
+  return `<section class="card">${items.map((n, i) => {
+    const txt = { follow: 'empezó a seguirte', starlight: `dio una explosión de Starlight a ${esc(n.objetivo || '')}`, comentario: `comentó en tu publicación: “${esc(n.texto || '')}”`, respuesta: `respondió a tu comentario: “${esc(n.texto || '')}”` }[n.tipo];
+    return `<a class="usr" href="${n.tipo === 'follow' ? '#seguidores' : '#perfil'}" data-act="leer" data-id="${n.id}"><span class="av g${i % 3 + 1}" style="position:relative"><span class="nb" style="background:${color[n.tipo]}">${I(icono[n.tipo])}</span></span><div style="flex:1;min-width:0"><span><b style="display:inline">${esc(n.usuario)}</b> ${txt}</span><span class="mu">${n.hace}</span></div>${L.includes(n.id) ? '' : '<span class="ud"></span>'}</a>`;
+  }).join('')}</section>`;
+}
+
+/* ===== TIENDA: productos por categoría (conecta tu backend) =====
+   cat: 'cosmetics' | 'fashion' | 'merch-<slug del artista>-<sección>'   ->   { id, cat, nombre, precio (número en USD) }   (pago con PayPal) */
+const productos = [];
+const upBtn = '<button class="up" data-up aria-label="Volver arriba"><svg class="i"><path d="M5 4h14"/><path d="M12 20V9M6 14l6-6 6 6"/></svg></button>';
+function listaProductos(cat, q) {
+  const n = norm(q || '');
+  const items = productos.filter(p => (p.cat === cat || p.cat.startsWith(cat + '-')) && (!n || norm(p.nombre).includes(n)));
+  const fav = J.get('deseos', []).map(x => x.id);
+  if (items.length) return items.map(p => `<article class="ord"><div><b>${esc(p.nombre)}</b><div class="mu">${usd(p.precio)}</div></div><button class="heart ${fav.includes(p.id) ? 'on' : ''}" data-act="deseo" data-id="${esc(p.id)}" aria-label="Guardar en lista de deseos">${I('heart')}</button></article>`).join('');
+  return `<section class="empty" style="min-height:260px">${I('cart')}<p><b>${n ? 'Sin resultados para “' + esc(q.trim()) + '”' : 'Próximamente'}</b></p>${n ? '' : '<p style="font-size:12px;margin-top:6px">Aquí aparecerán los productos.</p>'}</section>`;
+}
+/* Página de una categoría de la tienda, con lupita para buscar dentro de Starship Legacy Shop */
+const catPage = (titulo, desc, cat, cuerpo) => () => `<div class="lt">${tiendaTop('comprar')}
+  <main class="shop"><div class="fila"><div><h1>${titulo}</h1><p class="mu" style="margin:6px 0 0">${desc}</p></div>${herramientas(true)}</div>
+  <label class="sbox2" id="sbx">${I('search')}<input id="qs" data-cat="${cat}" placeholder="Buscar en Starship Legacy Shop" autocomplete="off"></label>
+  <div id="ps" style="margin-top:14px">${cuerpo || listaProductos(cat, '')}</div></main>${upBtn}</div>`;
+/* Botones de la esquina superior derecha de la tienda: [Lista de Deseos] [Pagar selección] */
+const herramientas = lupa => `<div class="tools">${lupa ? `<button class="lupa" data-act="lupa" aria-label="Buscar en la tienda">${I('search')}</button>` : ''}<a class="tb" href="#deseos">${I('heart')}Lista de Deseos</a><a class="tb pay" href="#pagar">Pagar selección</a></div>`;
+const usd = n => 'USD $' + Number(n).toFixed(2);
+
+/* Secciones del merch oficial. Artistas y grupos: música, ofertas, regalo, lightstick. Modelos, actores y actrices: marca, photocards, lightstick. */
+const SEC = {
+  musica: { n: 'Música', d: 'Álbumes físicos y digitales', i: 'mic' },
+  ofertas: { n: 'Novedades u Ofertas', d: 'Lo más reciente y los descuentos', i: 'star' },
+  regalo: { n: 'Tarjetas de regalo', d: 'Se pagan con PayPal', i: 'card' },
+  lightstick: { n: 'Lightstick', d: 'El palo de luz oficial para conciertos y eventos', i: 'sun' },
+  marca: { n: 'Colaboración con marca', d: 'Productos hechos junto a marcas', i: 'bag' },
+  photocards: { n: 'Photocards', d: 'Photocards oficiales', i: 'doc' }
+};
+let merchBase = '';
+function merchPage(slug) {
+  const a = artistas.find(x => x.slug === slug);
+  if (!a) return pages.comprar();
+  const talento = /actriz|actor|modelo/i.test(a.tipo);
+  const musica = !talento || /cantante|grupo|artista/i.test(a.tipo);
+  const orden = [...(musica ? ['musica', 'ofertas', 'regalo', 'lightstick'] : []), ...(talento ? ['marca', 'photocards', 'lightstick'] : [])].filter((k, i, arr) => arr.indexOf(k) === i);
+  merchBase = `<section class="card faq">${orden.map(k => `<details name="faq"><summary><span style="display:flex;align-items:center;gap:10px">${I(SEC[k].i)}<span><b style="display:block">${SEC[k].n}</b><span class="mu">${SEC[k].d}</span></span></span></summary>${listaProductos('merch-' + slug + '-' + k, '')}</details>`).join('')}</section>`;
+  return catPage('Merch oficial · ' + a.nombre, a.tipo, 'merch-' + slug, merchBase)();
+}
+
+/* Shorts (videos verticales, estilo TikTok). Datos de ejemplo: conéctalos a la tabla public.shorts de Supabase */
+const listaShorts = [
+  { id: 1, usuario: 'Username 1', arroba: 'username1', texto: 'Short de ejemplo n.º 1', fondo: 'linear-gradient(160deg,#3b2a5c,#1e3a8a 55%,#0b1224)', stars: 120, coms: 8 },
+  { id: 2, usuario: 'Username 2', arroba: 'username2', texto: 'Short de ejemplo n.º 2', fondo: 'linear-gradient(160deg,#be123c,#7c2d12 55%,#1c1917)', stars: 87, coms: 3 },
+  { id: 3, usuario: 'Username 3', arroba: 'username3', texto: 'Short de ejemplo n.º 3', fondo: 'linear-gradient(160deg,#0f766e,#1e293b 60%,#020617)', stars: 45, coms: 12 }
+];
+
+/* ===== 8. PÁGINAS ===== */
+const nav = on => `<nav class="nav" aria-label="Principal">
+  <a href="#inicio" class="${on === 'inicio' ? 'on' : ''}" aria-label="Inicio">${I('home')}</a>
+  <a href="#comunidades" class="${on === 'comunidades' ? 'on' : ''}" aria-label="Comunidades">${I('users')}</a>
+  <a href="#crear" class="mid" aria-label="Crear">${I('plus')}</a>
+  <a href="#shorts" class="${on === 'shorts' ? 'on' : ''}" aria-label="Shorts"><span class="sbtn">S</span></a>
+  <a href="#perfil" class="${on === 'perfil' ? 'on' : ''}" aria-label="Mi perfil">${I('user')}</a></nav>`;
+const save = `<span class="bm">${I('bm')}</span>`;
+/* href null = opción todavía inactiva */
+const row = (href, icon, bg, txt) => {
+  const inner = `<span class="ico" style="background:${bg}">${I(icon)}</span><span class="t">${txt}</span>${I('chev', 'chev')}`;
+  return href ? `<a class="row" href="${href}">${inner}</a>` : `<div class="row off" aria-disabled="true">${inner}</div>`;
+};
+const rowG = (href, icon, txt) => row(href, icon, '#5a5a5a', txt);
+
+const pages = {
+  inicio: () => `<div class="wrap">
+    <header class="hd"><span style="display:flex;align-items:center"><a class="cart" href="#pedidos" data-tip="STARSHIP-Shop" aria-label="STARSHIP-Shop">${I('cart')}</a><span class="logo">GEFFENWEVERSE</span></span><span class="ic"><span class="radio ${radioOn() ? 'on' : 'off'}" role="img" aria-label="Starship Listing Party: ${radioOn() ? 'activada' : 'apagada'}" title="Starship Listing Party: ${radioOn() ? 'activada' : 'apagada'}">${I('live')}</span><a href="#buscar" aria-label="Buscar">${I('search')}</a><a class="bell" href="#avisos" aria-label="Notificaciones">${I('bell')}${sinLeer() ? `<span class="dot">${sinLeer()}</span>` : ''}</a></span></header>
+    <nav class="tabs" aria-label="Secciones"><a href="#inicio">Inicio</a><a href="#siguiendo">Siguiendo</a><a href="#artistas">Artistas</a><a href="#comunidades">Comunidades</a><a href="#inicio" data-act="media">MULTIMEDIA</a></nav>
+    <section class="feat"><small>Artistas destacados</small><span class="av g1"></span><span class="av g2"></span><span class="av g3"></span>
+      <span style="margin-left:4px"><b style="font-size:12px">Descubre tus artistas</b><span class="mu" style="font-size:9px;margin:0">Novedades y comunidades</span></span></section>
+    <section class="card feed"><div class="top"><b>Feed de publicaciones</b><span class="pill">Comunidad</span></div>
+      <p class="yel">Publicaciones de artistas y Estrellas Creativas que sigues.</p>
+      <div class="photo" role="img" aria-label="Siete personas vestidas de negro sentadas a una mesa con velas"><u></u>
+        ${[8, 20, 33, 45, 57, 69, 82].map((l, i) => `<i style="left:${l}%;bottom:${[28, 32, 36, 39, 36, 32, 28][i]}%"></i>`).join('')}
+        <span class="chip">geffenweverse.com</span>${save}</div>
+      <div class="acts"><span>Me gusta · Comentar · Compartir</span>${I('bm')}</div></section>
+    <section class="card" id="sec-media"><b>Multimedia y descubrimiento</b><p class="mu" style="color:#60a5fa;margin:3px 0 10px">Videos verticales, clips musicales y contenido de la comunidad.</p>
+      <div class="vids"><div>${save}</div><div>${save}</div><div>${save}</div></div></section>
+    ${nav('inicio')}</div>`,
+
+  perfil: () => `<div class="wrap">
+    <header class="bar"><h1 style="font-size:18px">Profile Name<span class="mu" style="font-weight:400;margin:2px 0 0">125.7k publicaciones</span></h1><a href="#menu" class="mbtn" aria-label="Abrir menú">${I('menu')}</a></header>
+    <div class="cover" role="img" aria-label="Portada"></div>
+    <div class="ph"><div class="avl" role="img" aria-label="Foto de perfil"></div><button class="edit">Editar perfil</button></div>
+    <section class="info"><div class="nm">Profile Name<svg class="ok"><use href="#ok"/></svg></div><div class="mu" style="font-size:13px;margin:0 0 8px">@username · <span class="pill">${rolNombre()}</span></div>
+      <p class="mu" style="font-size:14px">Tu biografía aquí</p>
+      <div class="meta"><span>${I('pin')}Ubicación</span><span>${I('cal')}Se unió en 2021</span></div>
+      <div class="cnt"><a href="#siguiendo"><b>256</b> Siguiendo</a><a href="#seguidores"><b>165</b> Seguidores</a></div></section>
+    <div class="ptabs"><span class="on">Publicaciones</span><span>Respuestas</span><span>Multimedia</span><span>Me gusta</span></div>
+    <section class="post"><span class="av"></span><div style="flex:1"><div class="h"><strong>Profile Name</strong><svg class="ok" style="width:15px;height:15px"><use href="#ok"/></svg>@username · 32m</div>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Hic nihil fuit, quod quaereremus.</p>
+      <div class="a"><span>${I('cmt')}568k</span><span>${I('rt')}75k</span><span>${I('heart')}157</span>${I('share')}</div></div></section>
+    ${nav('perfil')}</div>`,
+
+  /* Pantalla del menú (se abre con las dos rayitas del perfil). Activos: pedidos y configuración */
+  menu: () => `<div class="wrap"><header class="bar"><a href="#perfil" data-back aria-label="Volver">${I('back')}</a><h1>Menú</h1></header>
+    <section class="card cols"><div>${row('#pedidos', 'bag', '#2dd4bf', 'Historial de pedidos de la tienda<small>Starship Legacy Shop</small>')}${row('#eventos', 'cal', '#34d399', 'Solicitudes de eventos')}${row('#codigo', 'card', '#c084fc', 'Ingresar el código digital')}${row('#configuracion', 'gear', '#6b6b6b', 'Configuración')}</div>
+      <div>${row('#cupones', 'card', '#10b981', 'Buzón de cupones')}${row('#multimedia', 'doc', '#3b82f6', 'Multimedia comprada')}${row('#anuncios', 'mega', '#f59e0b', 'Anuncios')}${row('#faq', 'faq', '#a78bfa', 'FAQ')}</div></section>
+    <section class="card">${rowG('#spot', 'map', 'GeffenWeverse Spot')}${rowG('#magazine', 'book', 'GeffenWeverse Magazine')}${rowG('#concerts', 'mic', 'GeffenWeverse Concerts')}${rowG('#survey', 'clip', 'GeffenWeverse Survey')}</section></div>`,
+
+  configuracion: () => {
+    const opt = (m, ic, t, s = '') => `<button class="row" role="radio" data-theme-opt="${m}" aria-checked="${themeMode === m}">${I(ic)}<span class="t"><b>${t}</b>${s ? `<small>${s}</small>` : ''}</span><span class="rd"></span></button>`;
+    const sel = (lbl, ops, ic) => `<div class="row">${I(ic)}<span class="t"><b>${lbl}</b></span><label class="sel"><select aria-label="${lbl}" data-pref="sel-${lbl}">${ops}</select>${I('down')}</label></div>`;
+    return `<div class="wrap"><header class="bar"><a href="#menu" data-back aria-label="Volver">${I('back')}</a><h1>Configuración</h1></header>
+    <section class="card"><h2>Configuración de idioma</h2>
+      ${sel('Idioma del servicio', '<option selected>español (latino)</option><option>español (España)</option><option>English</option><option>한국어</option><option>日本語</option>', 'globe')}
+      ${sel('Idioma traducido', '<option selected></option><option>español (latino)</option><option>English</option><option>한국어</option><option>日本語</option>', 'tr')}
+      <div class="row">${I('auto')}<span class="t"><b>Traducir (automático)</b><small>Algunos de los contenidos publicados por Artistas y fans se traducirán automáticamente al idioma que selecciones.</small></span><button class="sw" role="switch" aria-checked="false" aria-label="Traducir automáticamente" data-switch data-pref="traducir"></button></div></section>
+    <section class="card"><h2>Starship Listing Party</h2><div class="row">${I('live')}<span class="t"><b>Radio FM</b><small>Se refleja en el icono de Inicio: verde si está activada, azul si está apagada.</small></span><button class="sw lp" role="switch" aria-checked="true" aria-label="Starship Listing Party" data-switch data-pref="radio"></button></div></section>
+    <section class="card"><h2>Configuración de complementos</h2><p class="mu" style="margin:12px 0 0">Pantalla</p>
+      <div role="radiogroup" aria-label="Modo de pantalla">${opt('light', 'sun', 'Modo claro')}${opt('dark', 'moon', 'Modo oscuro')}${opt('device', 'half', 'Uso de ajustes del dispositivo', 'El modo se ajusta según la configuración de la pantalla del dispositivo.')}</div></section>
+    <section class="card"><h2>Configuración de notificaciones y servicios</h2>
+      <a class="row" href="#notificaciones"><span class="t"><b>Configuración de notificaciones de eventos y promociones</b></span>${I('chev', 'chev')}</a>
+      <a class="row" href="#personalizados"><span class="t"><b>Ver anuncios y servicios personalizados</b></span>${I('chev', 'chev')}</a></section></div>`;
+  },
+
+  pedidos: () => `<div class="lt">${tiendaTop('pedidos')}
+    <main class="shop"><h1>Mis Pedidos</h1><p class="mu" style="margin:6px 0 0">Las compras de Starship Legacy Shop se pagan con PayPal.</p>
+    ${pedidos.length ? pedidos.map(p => `<article class="ord"><div><b>Pedido ${p.id}</b><div class="mu">${p.fecha} · ${p.articulos} · Pago con PayPal</div></div><div style="text-align:right"><b style="color:var(--brand)">${p.estado}</b><div><b>${p.total}</b></div></div></article>`).join('')
+      : `<section class="empty">${I('alert')}<p>No hay pedidos</p></section>`}</main>
+    <button class="up" data-up aria-label="Volver arriba"><svg class="i"><path d="M5 4h14"/><path d="M12 20V9M6 14l6-6 6 6"/></svg></button></div>`,
+
+  artistas: () => `<div class="wrap"><header class="bar"><a href="#inicio" data-back aria-label="Volver">${I('back')}</a><h1>Artistas</h1></header>
+    <section class="card"><b style="font-size:15px">Welcome a “Artists”</b><p class="mu" style="font-size:13px;line-height:1.4;margin-top:6px">Aquí verás todos los artistas relacionados con el conglomerado de Starship Legacy.</p></section>
+    <section class="card"><p class="mu" style="margin:0 0 4px">Toca un nombre para abrir su WikiGeffen.</p>
+      ${artistas.map((a, i) => `<a class="usr" href="#wiki-${a.slug}"><span class="av g${i % 3 + 1}"></span><div style="flex:1"><b>${a.nombre}</b><span class="mu">${a.tipo}</span></div>${I('chev', 'chev')}</a>`).join('')}</section></div>`,
+  faq: () => `<div class="wrap"><header class="bar"><a href="#menu" data-back aria-label="Volver">${I('back')}</a><h1>FAQ<span class="mu" style="font-weight:400;font-size:12px;margin:2px 0 0">Preguntas frecuentes</span></h1></header>
+    <section class="card"><b style="font-size:15px">Welcome a FAQ</b><p class="mu" style="font-size:13px;line-height:1.4;margin-top:6px">¿Preguntas? No te preocupes, aquí te damos las respuestas.</p></section>
+    <section class="card faq">${listaFaq.length ? listaFaq.map(f => `<details name="faq"><summary>${f.pregunta}</summary><p class="r">${f.respuesta}</p></details>`).join('') : `<p class="mu" style="text-align:center;padding:28px 0;margin:0">Esta sección se llenará pronto.</p>`}</section></div>`,
+  eventos: () => { const l = J.get('solicitudes', []); return `<div class="wrap">${barra('Solicitudes de eventos', 'Pide un evento o actividad a Starship Legacy')}
+    <section class="card"><h2>Nueva solicitud</h2><input class="inp" id="ev-n" placeholder="Nombre del evento" maxlength="80"><textarea class="inp" id="ev-m" rows="3" placeholder="Cuéntanos más (opcional)" maxlength="300"></textarea><button class="btn2" data-act="evento">Enviar solicitud</button></section>
+    <section class="card"><h2>Mis solicitudes</h2>${l.length ? l.map(s => `<div class="row"><span class="t"><b>${esc(s.evento)}</b><small>${s.fecha}${s.mensaje ? ' · ' + esc(s.mensaje) : ''}</small></span><span class="pill">${s.estado}</span></div>`).join('') : vacio('Aún no has enviado solicitudes')}</section></div>`; },
+  codigo: () => `<div class="wrap">${barra('Ingresar el código digital', 'Canjea tu código para desbloquear contenido')}<section class="card"><h2>Tu código</h2><input class="inp" id="cod" placeholder="XXXX-XXXX" autocapitalize="characters" maxlength="40"><button class="btn2" data-act="canje">Canjear</button><p class="mu">Lo que canjees aparece en “Multimedia comprada”.</p></section></div>`,
+  multimedia: () => { const l = J.get('multimedia', []); return `<div class="wrap">${barra('Multimedia comprada')}<section class="card">${l.length ? l.map(m => `<div class="row">${I('doc')}<span class="t"><b>${esc(m.titulo)}</b><small>Código ${esc(m.codigo)} · ${m.fecha}</small></span></div>`).join('') : vacio('Aún no tienes multimedia comprada')}</section></div>`; },
+  cupones: () => `<div class="wrap">${barra('Buzón de cupones')}<section class="card">${cupones.length ? cupones.map(c => `<div class="row"><span class="t"><b>${c.codigo}</b><small>${c.descripcion} · vence ${c.vence}</small></span><button class="pill" data-act="copiar" data-codigo="${c.codigo}">Copiar</button></div>`).join('') : vacio('No tienes cupones por ahora')}</section></div>`,
+  anuncios: () => `<div class="wrap">${barra('Anuncios')}${anuncios.map(a => `<section class="card"><b>${a.titulo}</b><span class="mu">${a.fecha}</span><p style="margin-top:8px;line-height:1.4">${a.texto}</p></section>`).join('')}</div>`,
+  notificaciones: () => `<div class="wrap">${barra('Notificaciones', 'Eventos y promociones', '#configuracion')}<section class="card">${tog('n-eventos', 'Eventos', 'Avisos de nuevos eventos y fechas', true)}${tog('n-promos', 'Promociones', 'Descuentos y cupones de Starship Legacy Shop', true)}${tog('n-artistas', 'Publicaciones de artistas', 'Cuando un artista que sigues publica', true)}${tog('n-pedidos', 'Estado de pedidos', 'Cambios en tus compras de la tienda', true)}</section></div>`,
+  personalizados: () => `<div class="wrap">${barra('Anuncios y servicios personalizados', '', '#configuracion')}<section class="card">${tog('p-anuncios', 'Anuncios personalizados', 'Ver anuncios según tus intereses', true)}${tog('p-servicios', 'Servicios personalizados', 'Recomendaciones de artistas, eventos y productos', true)}</section></div>`,
+  spot: proximamente('GeffenWeverse Spot'),
+  magazine: proximamente('GeffenWeverse Magazine'),
+  concerts: proximamente('GeffenWeverse Concerts'),
+  survey: proximamente('GeffenWeverse Survey'),
+  /* Comprar: productos y merchandising (próximamente) */
+  comprar: () => `<div class="lt">${tiendaTop('comprar')}
+    <main class="shop"><div class="fila"><h1>Comprar</h1>${herramientas(false)}</div>
+    <section class="card" style="margin-top:16px"><b style="font-size:16px">Hola estrella o astronauta, ¿qué deseas comprar?</b></section>
+    <section class="card faq">
+      <details name="faq"><summary><span style="display:flex;align-items:center;gap:10px">${I('star')}<b>STARSHIP Beauty</b></span></summary>
+        <a class="usr" href="#cosmetics"><span class="av g1"></span><div style="flex:1"><b>Starship Cosmetics</b><span class="mu">Maquillaje, cuidado personal y cuidado íntimo</span></div>${I('chev', 'chev')}</a>
+        <a class="usr" href="#fashion"><span class="av g2"></span><div style="flex:1"><b>Starship Fashion</b><span class="mu">Prendas, ropa, accesorios, calzado y todo lo de vestir</span></div>${I('chev', 'chev')}</a></details>
+      <details name="faq"><summary><span style="display:flex;align-items:center;gap:10px">${I('bag')}<b>Merchandising</b></span></summary>
+        ${artistas.map((a, i) => `<a class="usr" href="#merch-${a.slug}"><span class="av g${i % 3 + 1}"></span><div style="flex:1"><b>${a.nombre}</b><span class="mu">${a.tipo} · Merch oficial</span></div>${I('chev', 'chev')}</a>`).join('')}</details>
+    </section></main>
+    <button class="up" data-up aria-label="Volver arriba"><svg class="i"><path d="M5 4h14"/><path d="M12 20V9M6 14l6-6 6 6"/></svg></button></div>`,
+  buscar: () => { buscarTipo = 'todo'; return `<div class="wrap"><header class="bar"><a href="#inicio" data-back aria-label="Volver">${I('back')}</a><label class="sbox">${I('search')}<input id="q" type="search" placeholder="Search" aria-label="Search" autocomplete="off"></label></header>
+    <div class="chips">${[['todo', 'Todo'], ['artistas', 'Artistas'], ['creadores', 'Creadores'], ['publicaciones', 'Publicaciones']].map(([k, l]) => `<button class="chip2 ${k === 'todo' ? 'on' : ''}" data-act="tipo" data-tipo="${k}">${l}</button>`).join('')}</div>
+    <div id="res">${resultados('', 'todo')}</div></div>`; },
+  avisos: () => { avisosTipo = 'todo'; return `<div class="wrap"><header class="bar"><a href="#inicio" data-back aria-label="Volver">${I('back')}</a><h1>Notificaciones</h1><button class="pill" style="margin-left:auto" data-act="leertodo">Marcar todo como leído</button></header>
+    <div class="chips">${[['todo', 'Todo'], ['seguidores', 'Seguidores'], ['starlight', 'Starlight'], ['comentarios', 'Comentarios']].map(([k, l]) => `<button class="chip2 ${k === 'todo' ? 'on' : ''}" data-act="avtipo" data-tipo="${k}">${l}</button>`).join('')}</div>
+    <div id="av-lista">${listaAvisos('todo')}</div></div>`; },
+  /* Comunidades: los grupos donde participas. Cada artista o grupo tiene su comunidad (puedes unirte o salir) */
+  comunidades: () => {
+    const mis = J.get('comunidades', []);
+    const dentro = artistas.filter(a => mis.includes(a.slug)), fuera = artistas.filter(a => !mis.includes(a.slug));
+    const fila = (a, i, unido) => `<div class="usr"><span class="av g${i % 3 + 1}"></span><div style="flex:1;min-width:0"><b>${a.nombre}</b><span class="mu">Comunidad · ${a.tipo}</span></div><button class="pill" data-act="unirse" data-slug="${a.slug}">${unido ? 'Salir' : 'Unirse'}</button></div>`;
+    return `<div class="wrap">${barra('Comunidades', 'Los grupos donde participas', '#inicio')}
+      <section class="card"><h2>Mis comunidades</h2>${dentro.length ? dentro.map((a, i) => fila(a, i, true)).join('') : vacio('Aún no participas en ninguna comunidad')}</section>
+      ${fuera.length ? `<section class="card"><h2>Descubre comunidades</h2>${fuera.map((a, i) => fila(a, i, false)).join('')}</section>` : ''}${nav('comunidades')}</div>`;
+  },
+  /* Pantalla “Hola, ¿Eres?”: se muestra después del login/registro y antes de entrar a Inicio */
+  rol: () => `<div class="wrap" style="padding-top:48px"><h1 style="font-size:26px;font-weight:800;text-align:center;margin-bottom:6px">Hola, ¿Eres?</h1><p class="mu" style="text-align:center;margin-bottom:20px">Elige cómo quieres vivir GeffenWeverse</p>
+    <button class="card" style="display:block;width:100%;text-align:left;border:1px solid var(--line)" data-act="rol" data-rol="astroturista"><span style="display:flex;align-items:center;gap:10px">${I('heart')}<b style="font-size:17px">Astroturista</b></span><span class="mu" style="font-size:13px;line-height:1.4">Solo eres un fan que quiere apoyar a sus artistas.</span><span class="mu" style="line-height:1.4">No puedes publicar contenido, pero sí puedes dar Starlights, escribir comentarios y recibir Starlights en tus comentarios.</span></button>
+    <button class="card" style="display:block;width:100%;text-align:left;border:1px solid var(--line)" data-act="rol" data-rol="estrella"><span style="display:flex;align-items:center;gap:10px">${I('star')}<b style="font-size:17px">Estrella Creadora</b></span><span class="mu" style="font-size:13px;line-height:1.4">Sube contenido: fotos, videos y posts.</span></button></div>`,
+  crear: () => `<div class="wrap">${barra('Crear', '', '#inicio')}${store.get('gw-rol') === 'estrella'
+    ? `<section class="card"><h2>¿Qué quieres subir?</h2>${row(null, 'doc', '#f472b6', 'Foto<small>Próximamente</small>')}${row(null, 'mega', '#60a5fa', 'Video<small>Próximamente</small>')}${row(null, 'cmt', '#22c55e', 'Post<small>Próximamente</small>')}</section>`
+    : `<section class="card">${vacio('Solo las Estrellas Creadoras pueden subir contenido. Como Astroturista puedes dar Starlights y escribir comentarios.')}</section>`}${nav('crear')}</div>`,
+  /* Shorts: lista vertical con desplazamiento de un video por pantalla */
+  shorts: () => { const dadas = J.get('short-stars', []); return `<div class="shorts" aria-label="Shorts">${listaShorts.map(s => { const on = dadas.includes(s.id); return `<article class="short" style="background:${s.fondo}"><span class="tit">Shorts</span><div class="info"><b>@${esc(s.arroba)}</b> <button class="pill" data-act="sseguir">Seguir</button><p style="margin-top:6px;line-height:1.3">${esc(s.texto)}</p></div><div class="rail"><button class="rb2 ${on ? 'on' : ''}" data-act="sstar" data-id="${s.id}" data-n="${s.stars}" aria-label="Dar Starlight">${I('star')}<span>${s.stars + (on ? 1 : 0)}</span></button><button class="rb2" data-act="sproximo" aria-label="Comentarios">${I('cmt')}<span>${s.coms}</span></button><button class="rb2" data-act="sproximo" aria-label="Compartir">${I('share')}<span>Compartir</span></button></div></article>`; }).join('')}</div>${nav('shorts')}`; },
+  deseos: () => { const d = J.get('deseos', []), s = J.get('seleccion', []); return `<div class="lt">${tiendaTop('comprar')}<main class="shop"><div class="fila"><h1>Lista de Deseos</h1>${herramientas(false)}</div>
+    <section class="card" style="margin-top:16px">${d.length ? d.map(p => `<div class="usr"><input type="checkbox" data-act="sel" data-id="${esc(p.id)}" ${s.includes(p.id) ? 'checked' : ''} aria-label="Seleccionar ${esc(p.nombre)}"><div style="flex:1"><b>${esc(p.nombre)}</b><span class="mu">${usd(p.precio)}</span></div><button class="pill" data-act="quitar" data-id="${esc(p.id)}">Quitar</button></div>`).join('') : vacio('Aún no has guardado productos. Toca el corazón de un producto para guardarlo.')}</section></main>${upBtn}</div>`; },
+  pagar: () => { const s = J.get('seleccion', []), l = J.get('deseos', []).filter(p => s.includes(p.id)), total = l.reduce((a, p) => a + Number(p.precio), 0); return `<div class="lt">${tiendaTop('comprar')}<main class="shop"><div class="fila"><h1>Pagar selección</h1>${herramientas(false)}</div>
+    <section class="card" style="margin-top:16px">${l.length ? l.map(p => `<div class="row"><span class="t"><b>${esc(p.nombre)}</b></span><b>${usd(p.precio)}</b></div>`).join('') + `<div class="row"><span class="t"><b>Total</b></span><b>${usd(total)}</b></div><button class="btn2" data-act="paypal">Pagar con PayPal</button>` : vacio('No has seleccionado productos. Selecciónalos en tu Lista de Deseos.')}</section></main>${upBtn}</div>`; },
+  cosmetics: catPage('Starship Cosmetics', 'Maquillaje, cuidado personal y cuidado íntimo', 'cosmetics'),
+  fashion: catPage('Starship Fashion', 'Prendas, ropa, accesorios, calzado y todo lo de vestir', 'fashion'),
+  siguiendo: () => personas('siguiendo'),
+  seguidores: () => personas('seguidores'),
+  login: () => auth('login'),
+  registro: () => auth('registro')
+};
+
+/* Lista de personas: foto a la izquierda; nombre y @id apilados a la derecha */
+function personas(tipo) {
+  const sig = tipo === 'siguiendo';
+  const datos = sig ? listaSiguiendo : listaSeguidores;
+  const fotos = ['g1', 'g2', 'g3'];
+  return `<div class="wrap"><header class="bar"><a href="#perfil" data-back aria-label="Volver">${I('back')}</a>
+    <h1>${sig ? 'Siguiendo' : 'Seguidores'}<span class="mu" style="font-weight:400;font-size:12px;margin:2px 0 0">${sig ? 'A los que sigues' : 'Los que te siguen'}</span></h1></header>
+    <div class="ptabs"><a href="#siguiendo" data-replace class="${sig ? 'on' : ''}">Siguiendo</a><a href="#seguidores" data-replace class="${sig ? '' : 'on'}">Seguidores</a></div>
+    <section class="card" style="margin-top:12px">${datos.length
+      ? datos.map((u, i) => `<div class="usr"><span class="av ${fotos[i % 3]}"></span><div><b>${u.nombre}</b><span class="mu">@${u.id}</span></div></div>`).join('')
+      : `<p class="mu" style="text-align:center;padding:24px 0">${sig ? 'Aún no sigues a nadie' : 'Aún no tienes seguidores'}</p>`}</section></div>`;
+}
+
+/* WikiGeffen: enciclopedia de cada artista de Starship Legacy (secciones listas para llenar) */
+function wiki(slug) {
+  const a = artistas.find(x => x.slug === slug);
+  if (!a) return pages.artistas();
+  const i = artistas.indexOf(a);
+  return `<div class="wrap"><header class="bar"><a href="#artistas" data-back aria-label="Volver">${I('back')}</a><h1>WikiGeffen<span class="mu" style="font-weight:400;font-size:12px;margin:2px 0 0">Enciclopedia de artistas de Starship Legacy</span></h1></header>
+    <section class="card" style="text-align:center"><span class="av g${i % 3 + 1}" style="display:block;width:96px;height:96px;margin:6px auto 12px"></span><h2 style="font-size:22px;margin:0 0 8px">${a.nombre}</h2><span class="pill">${a.tipo}</span></section>
+    ${['Resumen', 'Datos básicos', 'Trayectoria', 'Discografía', 'Galería'].map(s => `<section class="card"><h2>${s}</h2><p class="mu" style="margin:0">Todavía no hay contenido en esta sección.</p></section>`).join('')}</div>`;
+}
+
+function auth(modo) {
+  const reg = modo === 'registro';
+  const V = reg ? 'Regístrate con' : 'Continuar con';
+  const g = `<svg class="i" viewBox="0 0 24 24" style="stroke:none"><path fill="#4285F4" d="M22.600 12.200c0-.8-.1-1.500-.2-2.200H12v4.200h5.900a5 5 0 0 1-2.200 3.300v2.700h3.500c2.100-1.900 3.400-4.700 3.400-8z"/><path fill="#34A853" d="M12 23c2.900 0 5.400-1 7.200-2.600l-3.500-2.700c-1 .7-2.200 1-3.700 1-2.800 0-5.200-1.900-6-4.500H2.400v2.800A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M6 14.200a6.600 6.600 0 0 1 0-4.300V7.100H2.400a11 11 0 0 0 0 9.900z"/><path fill="#EA4335" d="M12 5.400c1.600 0 3 .6 4.100 1.600l3.100-3.100A11 11 0 0 0 2.400 7.100L6 9.900c.8-2.600 3.200-4.500 6-4.500z"/></svg>`;
+  const ap = `<svg class="i" viewBox="0 0 24 24" style="fill:#000;stroke:none"><path d="M16.400 12.600c0-2.300 1.900-3.400 2-3.500-1.100-1.600-2.800-1.800-3.400-1.800-1.400-.1-2.800.9-3.500.9s-1.800-.8-3-.8c-1.500 0-3 .9-3.800 2.300-1.600 2.800-.4 7 1.200 9.300.8 1.100 1.700 2.400 2.900 2.300 1.200 0 1.600-.7 3-.7s1.800.7 3 .7c1.300 0 2.100-1.100 2.800-2.300.9-1.300 1.300-2.500 1.300-2.600 0 0-2.500-1-2.500-3.800zM14.100 5.800c.6-.8 1.100-1.800.9-2.800-.9 0-2 .6-2.700 1.400-.6.700-1.100 1.800-1 2.700 1 .1 2-.5 2.800-1.300z"/></svg>`;
+  const em = `<svg class="i" viewBox="0 0 24 24" style="fill:#000;stroke:none"><path d="M3 5h18a1 1 0 0 1 1 1v.5l-10 6.500L2 6.500V6a1 1 0 0 1 1-1zm19 3.900V18a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8.900l10 6.500z"/></svg>`;
+  const b = (p, ic, t, extra = '') => `<button class="pb" data-auth="${p}" style="order:${extra}">${p === 'google' && !reg ? '<em>Inicio de sesión reciente</em>' : ''}${ic}${V} ${t}</button>`;
+  const dot = (p, d, l) => `<button class="rb" data-auth="${p}" aria-label="${l}"><svg class="i" viewBox="0 0 24 24" style="fill:#000;stroke:none"><path d="${d}"/></svg></button>`;
+  return `<div class="lt"><main style="padding:16px 12px"><div class="lcard">
+    <a class="bk" href="${reg ? '#login' : '#inicio'}" data-back aria-label="Volver">${I('back')}</a>
+    <span class="lg"><i>GeffenWeverse</i> account</span>
+    <div class="lg2"><h1>${reg ? '¡Disfruta todos los servicios de GeffenWeverse con un solo registro!' : '¡Inicia sesión en GeffenWeverse como te resulte más cómodo!'}</h1>
+    <div class="rt">${reg ? b('email', em, 'email', 1) + b('google', g, 'Google', 2) : b('google', g, 'Google', 1) + b('email', em, 'email', 2)}${b('apple', ap, 'Apple', 3)}
+      <div class="soc">${dot('line', 'M12 3C6.500 3 2 6.500 2 10.800c0 3.800 3.400 7 8 7.600.3.100.7.200.8.500.1.300.1.700 0 1l-.1.900c0 .3-.2 1 .9.500s5.800-3.400 7.900-5.800C21.100 13.900 22 12.400 22 10.800 22 6.500 17.500 3 12 3z', 'LINE')}${dot('kakao', 'M12 3C6.500 3 2 6.400 2 10.600c0 2.700 1.800 5.100 4.600 6.400l-1 3.600c-.1.300.2.500.5.300l4.200-2.800c.5.100 1.100.1 1.700.1 5.500 0 10-3.400 10-7.600S17.500 3 12 3z', 'Chat')}${reg ? '' : dot('x', 'M17.800 3h3.100l-6.800 7.700L22 21h-6.200l-4.900-6.300L5.300 21H2.200l7.200-8.300L1.800 3h6.400l4.400 5.800zm-1.100 16.200h1.700L7.200 4.700H5.400z', 'X')}</div>
+      <p class="sw2">${reg ? '¿Ya tienes una cuenta? <a href="#login">Iniciar sesión</a>' : '¿Es tu primera vez en GeffenWeverse?<br><a href="#registro">Registro de cuenta</a>'}</p></div></div></div></main>
+    <footer class="foot"><nav><a href="#login">Términos y condiciones</a><a href="#login"><b>Política de privacidad</b></a><a href="#login">Política de cookies</a><a href="#login">Anuncios</a></nav>
+    <label class="sel">${I('globe', '')}<select aria-label="Idioma"><option selected>&nbsp;español (latino)</option><option>&nbsp;English</option><option>&nbsp;한국어</option></select>${I('down')}</label></footer></div>`;
+}
+
+/* ===== 9. ROUTER ===== */
+function render() {
+  const r = location.hash.slice(1);
+  const page = pages[r] || (r.startsWith('wiki-') ? () => wiki(r.slice(5)) : r.startsWith('merch-') ? () => merchPage(r.slice(6)) : pages.inicio);
+  $('#app').innerHTML = page();
+  applyPrefs();
+  if (r === 'buscar') { const q = $('#q'); if (q) q.focus(); }
+  window.scrollTo(0, 0);
+}
+/* Pila de navegación interna: las flechas vuelven a la pantalla anterior real */
+const stack = [location.hash.slice(1) || 'inicio'];
+let replacing = false;
+addEventListener('hashchange', () => {
+  const r = location.hash.slice(1) || 'inicio';
+  if (replacing) { stack[stack.length - 1] = r; replacing = false; }
+  else if (stack.length > 1 && stack[stack.length - 2] === r) stack.pop();
+  else if (stack[stack.length - 1] !== r) stack.push(r);
+  render();
+});
+render();
+
+/* ===== 10. EVENTOS ===== */
+/* Acciones de botones con data-act */
+const acciones = {
+  evento() {
+    const n = $('#ev-n').value.trim(), m = $('#ev-m').value.trim();
+    if (!n) return toast('Escribe el nombre del evento');
+    const l = J.get('solicitudes', []);
+    l.unshift({ evento: n, mensaje: m, fecha: new Date().toLocaleDateString('es'), estado: 'Pendiente' });
+    J.set('solicitudes', l); toast('Solicitud enviada'); render();
+  },
+  canje() {
+    const c = $('#cod').value.trim().toUpperCase(), l = J.get('multimedia', []);
+    if (!c) return toast('Escribe un código');
+    if (!codigosValidos[c]) return toast('Código no válido');
+    if (l.some(x => x.codigo === c)) return toast('Ya canjeaste este código');
+    l.unshift({ codigo: c, titulo: codigosValidos[c].titulo, fecha: new Date().toLocaleDateString('es') });
+    J.set('multimedia', l); toast('¡Código canjeado!'); location.hash = '#multimedia';
+  },
+  tipo(t) { buscarTipo = t.dataset.tipo; document.querySelectorAll('.chip2').forEach(c => c.classList.toggle('on', c === t)); $('#res').innerHTML = resultados($('#q').value, buscarTipo); },
+  leer(t) { const L = leidas(); if (!L.includes(t.dataset.id)) { L.push(t.dataset.id); J.set('avisos-leidos', L); } },
+  leertodo() { J.set('avisos-leidos', avisos.map(n => n.id)); render(); },
+  avtipo(t) { avisosTipo = t.dataset.tipo; document.querySelectorAll('.chip2').forEach(c => c.classList.toggle('on', c === t)); $('#av-lista').innerHTML = listaAvisos(avisosTipo); },
+  deseo(t) { const p = productos.find(x => x.id === t.dataset.id); if (!p) return; let d = J.get('deseos', []); const ya = d.some(x => x.id === p.id); d = ya ? d.filter(x => x.id !== p.id) : [...d, p]; J.set('deseos', d); t.classList.toggle('on', !ya); toast(ya ? 'Quitado de tu lista de deseos' : 'Guardado en tu lista de deseos'); },
+  sel(t) { let s = J.get('seleccion', []); s = s.includes(t.dataset.id) ? s.filter(i => i !== t.dataset.id) : [...s, t.dataset.id]; J.set('seleccion', s); },
+  quitar(t) { J.set('deseos', J.get('deseos', []).filter(x => x.id !== t.dataset.id)); J.set('seleccion', J.get('seleccion', []).filter(i => i !== t.dataset.id)); render(); },
+  paypal() { /* TODO: cuenta PayPal Business + backend que cree la orden de pago */ toast('Conecta aquí tu cuenta de PayPal Business para cobrar'); },
+  /* Cerrar sesión: pide confirmación; “Sí” te manda al Login */
+  salir() {
+    const m = document.createElement('div'); m.id = 'modal';
+    m.innerHTML = '<div class="mbox" role="alertdialog" aria-modal="true" aria-label="Cerrar sesión"><b>¿Seguro que quieres salir?</b><div><button class="btn2" data-act="salirsi">Sí</button><button class="btn3" data-act="salirno">No</button></div></div>';
+    document.body.appendChild(m); m.querySelector('.btn3').focus();
+  },
+  salirno() { const m = $('#modal'); if (m) m.remove(); },
+  salirsi() { const m = $('#modal'); if (m) m.remove(); /* TODO: cerrar la sesión real en tu backend */ location.hash = '#login'; },
+  unirse(t) { const s = t.dataset.slug; let m = J.get('comunidades', []); const ya = m.includes(s); m = ya ? m.filter(x => x !== s) : [...m, s]; J.set('comunidades', m); toast(ya ? 'Saliste de la comunidad' : '¡Te uniste a la comunidad!'); render(); },
+  media() { const s = $('#sec-media'); if (s) s.scrollIntoView({ behavior: 'smooth' }); },
+  rol(t) { store.set('gw-rol', t.dataset.rol); toast(t.dataset.rol === 'estrella' ? '¡Bienvenida, Estrella Creadora!' : '¡Bienvenido, Astroturista!'); location.hash = '#inicio'; },
+  sstar(t) { let d = J.get('short-stars', []); const id = Number(t.dataset.id), ya = d.includes(id); d = ya ? d.filter(x => x !== id) : [...d, id]; J.set('short-stars', d); t.classList.toggle('on', !ya); t.querySelector('span').textContent = Number(t.dataset.n) + (ya ? 0 : 1); },
+  sseguir(t) { t.textContent = t.textContent === 'Seguir' ? 'Siguiendo' : 'Seguir'; },
+  sproximo() { toast('Próximamente'); },
+  lupa() { const b = $('#sbx'); b.classList.toggle('on'); if (b.classList.contains('on')) $('#qs').focus(); },
+  async copiar(t) { try { await navigator.clipboard.writeText(t.dataset.codigo); toast('Código copiado'); } catch (e) { toast(t.dataset.codigo); } }
+};
+/* Busca mientras escribes */
+document.addEventListener('input', e => {
+  if (e.target.id === 'q') $('#res').innerHTML = resultados(e.target.value, buscarTipo);
+  if (e.target.id === 'qs') { const c = e.target.dataset.cat, q = e.target.value; $('#ps').innerHTML = (c.startsWith('merch-') && !q.trim()) ? merchBase : listaProductos(c, q); } /* búsqueda dentro de la tienda */
+});
+/* Guarda el idioma elegido en las listas desplegables */
+document.addEventListener('change', e => { const s = e.target.closest('select[data-pref]'); if (s) store.set('gw-' + s.dataset.pref, s.value); });
+document.addEventListener('click', e => {
+  /* FAQ tipo acordeón: al abrir una pregunta se cierra la anterior; tocarla de nuevo la cierra */
+  const sm = e.target.closest('.faq summary');
+  if (sm) { document.querySelectorAll('.faq details').forEach(d => { if (d !== sm.parentElement) d.open = false; }); return; }
+  const t = e.target.closest('[data-switch],[data-theme-opt],[data-auth],[data-up],[data-back],[data-replace],[data-act]');
+  if (!t) return;
+  if (t.dataset.act) { acciones[t.dataset.act](t); return; }
+  /* Flecha: vuelve a la pantalla anterior; si no hay (entró directo), va al enlace de respaldo (href) */
+  if (t.hasAttribute('data-back')) {
+    e.preventDefault();
+    if (stack.length > 1) { location.hash = stack[stack.length - 2]; return; }
+    /* Sin historial interno (entró directo o recargó): sube a la pantalla “madre” y deja Inicio detrás, así la flecha nunca rebota */
+    const fb = t.getAttribute('href').slice(1);
+    stack.length = 0; stack.push(...(fb === 'inicio' ? ['inicio'] : ['inicio', fb]));
+    location.hash = fb; return;
+  }
+  /* Pestañas hermanas (Siguiendo/Seguidores): reemplazan la entrada para que la flecha no dé vueltas */
+  if (t.hasAttribute('data-replace')) { e.preventDefault(); replacing = true; location.replace(t.getAttribute('href')); return; }
+  if (t.hasAttribute('data-switch')) { t.setAttribute('aria-checked', String(t.getAttribute('aria-checked') !== 'true')); if (t.dataset.pref) store.set('gw-' + t.dataset.pref, t.getAttribute('aria-checked')); }
+  else if (t.dataset.themeOpt) {
+    themeMode = t.dataset.themeOpt; store.set('gw-theme', themeMode); applyTheme(themeMode);
+    document.querySelectorAll('[data-theme-opt]').forEach(x => x.setAttribute('aria-checked', String(x === t)));
+  } else if (t.dataset.auth) Auth.start(location.hash.slice(1), t.dataset.auth);
+  else window.scrollTo({ top: 0, behavior: 'auto' }); /* sube de golpe */
+});
+</script>
+</body>
+</html>

@@ -272,8 +272,9 @@ const Auth = {
   },
   async init() {
     try {
+      const recoveryLink = location.hash.includes('type=recovery');
       const {data,error}=await supabaseClient.auth.getSession(); if(error) throw error;
-      await this.sync(data.session,'INITIAL_SESSION');
+      await this.sync(data.session,recoveryLink ? 'PASSWORD_RECOVERY' : 'INITIAL_SESSION');
       supabaseClient.auth.onAuthStateChange((event,session)=>{ Promise.resolve().then(()=>this.sync(session,event)); });
     } catch(error) { authReady=true; console.error('Error inicializando Supabase Auth:',error); toast(this.mensajeError(error)); render(); }
   },

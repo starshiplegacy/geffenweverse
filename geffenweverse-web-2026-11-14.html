@@ -158,6 +158,13 @@ a.usr:hover{background:#ffffff0a}.faq details{border-bottom:1px solid var(--line
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#111;color:#fff;border-radius:99px;padding:10px 18px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:20;max-width:90%;text-align:center}
 #toast.on{opacity:1}
 @media(max-width:640px){.cols,.lg2{grid-template-columns:1fr}.lcard{padding:30px 20px}.sw2{margin-top:30px}.shop{padding-top:30px}}
+.auth-form{display:flex;flex-direction:column;gap:12px;margin-top:18px}
+.auth-form label{display:block;font-size:12px;font-weight:700;color:#374151}
+.auth-form input{display:block;width:100%;margin-top:6px;padding:13px 14px;border:1px solid #d1d5db;border-radius:10px;background:#fff;color:#111;font:inherit}
+.auth-submit{width:100%;border:0;border-radius:99px;padding:13px 18px;background:#111827;color:#fff;font-weight:800;margin-top:4px}
+.auth-link{display:inline-block;color:#111;text-decoration:underline;font-weight:700;margin-top:14px}
+.auth-note{font-size:12px;line-height:1.5;color:#6b7280;margin-top:12px}
+.auth-loading{max-width:420px;margin:80px auto;text-align:center;padding:30px;color:var(--mu)}
 </style>
 </head>
 <body>
@@ -208,6 +215,7 @@ a.usr:hover{background:#ffffff0a}.faq details{border-bottom:1px solid var(--line
 <div id="app"></div>
 <div id="toast" role="status"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
 <script>
 /* ===== 6. UTILIDADES ===== */
 const I = (n, c = '') => `<svg class="i ${c}"><use href="#${n}"/></svg>`;
@@ -226,17 +234,90 @@ let themeMode = store.get('gw-theme') || 'device';
 applyTheme(themeMode);
 mq.addEventListener('change', () => themeMode === 'device' && applyTheme('device'));
 
-/* ===== 7. DATOS (conecta aquí tu backend) ===== */
-const pedidos = []; /* Solo pedidos hechos en Starship Legacy Shop. Ej: {id:"SL-0001",fecha:"13/11/2026",estado:"En preparación",total:"USD $25.00",articulos:"Álbum x1"} */
-/* Rol del usuario, elegido después de entrar: 'astroturista' (fan) o 'estrella' (Estrella Creadora) */
-const rolNombre = () => ({ astroturista: 'Astroturista', estrella: 'Estrella Creadora' }[store.get('gw-rol')] || 'Astroturista');
+/* ===== 7. DATOS Y AUTENTICACIÓN REAL ===== */
+const SUPABASE_URL = 'https://uyhcocdknweqvcqgbnez.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_rXN8tl3lJec0UKRiQYWAUA_0iP042hp';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+let currentUser = null, currentProfile = null, authReady = false;
+const rolNombre = () => ({ astroturista: 'Astroturista', estrella: 'Estrella Creadora' }[currentProfile?.rol] || 'Astroturista');
 const Auth = {
-  start(modo, proveedor) {
-    /* TODO: autenticación real (Appwrite / Supabase / Firebase). Por ahora se simula que salió bien. */
-    /* Después del registro (o del login si aún no eligió rol) aparece “Hola, ¿Eres?” antes de entrar a Inicio */
-    location.hash = (modo === 'registro' || !store.get('gw-rol')) ? '#rol' : '#inicio';
-  }
+  redirectUrl() { if (location.protocol === 'file:') throw new Error('Abre GeffenWeverse desde una dirección web (localhost o HTTPS) para usar la autenticación.'); return location.origin + location.pathname; },
+  mensajeError(error) {
+    const m=(error?.message||'').toLowerCase();
+    if(m.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.';
+    if(m.includes('email not confirmed')) return 'Primero confirma tu correo electrónico.';
+    if(m.includes('user already registered')) return 'Este correo ya tiene una cuenta. Inicia sesión.';
+    if(m.includes('password should be at least')) return 'La contraseña no cumple la longitud mínima.';
+    if(m.includes('rate limit')) return 'Has solicitado demasiados intentos. Espera un momento.';
+    if(m.includes('redirect')||m.includes('url')) return 'La dirección de retorno no está autorizada en Supabase Auth.';
+    return error?.message||'No se pudo completar la operación. Inténtalo de nuevo.';
+  },
+  async sync(session,event='INITIAL_SESSION') {
+    currentUser=session?.user||null; currentProfile=null;
+    if(currentUser) {
+      const {data,error}=await supabaseClient.from('profiles').select('id, username, display_name, bio, avatar_url, rol, created_at').eq('id',currentUser.id).maybeSingle();
+      if(error) console.error('No se pudo cargar el perfil:',error);
+      currentProfile=data||null;
+      const displayName=currentUser.user_metadata?.display_name;
+      if(currentProfile&&!currentProfile.display_name&&displayName) {
+        const {data:updated,error:updateError}=await supabaseClient.from('profiles').update({display_name:displayName}).eq('id',currentUser.id).select('id, username, display_name, bio, avatar_url, rol, created_at').maybeSingle();
+        if(!updateError&&updated) currentProfile=updated;
+      }
+    }
+    authReady=true;
+    if(event==='PASSWORD_RECOVERY') { if(location.hash!=='#restablecer') location.hash='#restablecer'; }
+    else if(event==='SIGNED_OUT') { if(location.hash!=='#login'&&location.hash!=='#registro') location.hash='#login'; }
+    else if(currentUser&&['login','registro','recuperar','restablecer'].includes(location.hash.slice(1))) location.hash='#inicio';
+    render();
+  },
+  async init() {
+    try {
+      const {data,error}=await supabaseClient.auth.getSession(); if(error) throw error;
+      await this.sync(data.session,'INITIAL_SESSION');
+      supabaseClient.auth.onAuthStateChange((event,session)=>{ Promise.resolve().then(()=>this.sync(session,event)); });
+    } catch(error) { authReady=true; console.error('Error inicializando Supabase Auth:',error); toast(this.mensajeError(error)); render(); }
+  },
+  async login(form) {
+    const email=form.email.value.trim(),password=form.password.value;
+    if(!email||!password) return toast('Escribe tu correo y contraseña.');
+    const submit=form.querySelector('[type=submit]'); submit.disabled=true; submit.textContent='Iniciando sesión…';
+    try { const {error}=await supabaseClient.auth.signInWithPassword({email,password}); if(error) throw error; }
+    catch(error){toast(this.mensajeError(error));}
+    finally{submit.disabled=false;submit.textContent='Iniciar sesión';}
+  },
+  async register(form) {
+    const displayName=form.display_name.value.trim(),email=form.email.value.trim(),password=form.password.value,confirm=form.confirm_password.value;
+    if(!displayName||!email||!password) return toast('Completa todos los campos.');
+    if(password.length<8) return toast('La contraseña debe tener al menos 8 caracteres.');
+    if(password!==confirm) return toast('Las contraseñas no coinciden.');
+    const submit=form.querySelector('[type=submit]'); submit.disabled=true; submit.textContent='Creando cuenta…';
+    try {
+      const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{display_name:displayName},emailRedirectTo:this.redirectUrl()}});
+      if(error) throw error;
+      if(data.session) await this.sync(data.session,'SIGNED_IN');
+      else { toast('Cuenta creada. Revisa tu correo y confirma la dirección antes de iniciar sesión.'); location.hash='#login'; }
+    } catch(error){toast(this.mensajeError(error));}
+    finally{submit.disabled=false;submit.textContent='Crear cuenta';}
+  },
+  async recover(form) {
+    const email=form.email.value.trim(); if(!email) return toast('Escribe el correo asociado a tu cuenta.');
+    const submit=form.querySelector('[type=submit]'); submit.disabled=true; submit.textContent='Enviando…';
+    try { const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:this.redirectUrl()}); if(error) throw error; toast('Si existe una cuenta con ese correo, recibirás instrucciones para recuperar el acceso.'); location.hash='#login'; }
+    catch(error){toast(this.mensajeError(error));}
+    finally{submit.disabled=false;submit.textContent='Enviar instrucciones';}
+  },
+  async updatePassword(form) {
+    const password=form.password.value,confirm=form.confirm_password.value;
+    if(password.length<8) return toast('La contraseña debe tener al menos 8 caracteres.');
+    if(password!==confirm) return toast('Las contraseñas no coinciden.');
+    const submit=form.querySelector('[type=submit]'); submit.disabled=true; submit.textContent='Guardando…';
+    try { const {error}=await supabaseClient.auth.updateUser({password}); if(error) throw error; toast('Contraseña actualizada correctamente.'); location.hash='#inicio'; }
+    catch(error){toast(this.mensajeError(error));}
+    finally{submit.disabled=false;submit.textContent='Guardar contraseña';}
+  },
+  async signOut(){const {error}=await supabaseClient.auth.signOut({scope:'local'});if(error)toast(this.mensajeError(error));}
 };
+const pedidos = []; /* Solo pedidos hechos en Starship Legacy Shop. Ej: {id:"SL-0001",fecha:"13/11/2026",estado:"En preparación",total:"USD $25.00",articulos:"Álbum x1"} */
 
 /* Listas de personas: { nombre, id }  ->  conecta aquí tu backend (id se muestra como @id) */
 const listaSiguiendo = [1, 2, 3, 4, 5, 6].map(n => ({ nombre: `Username ${n}`, id: `username${n}` }));   /* A los que sigues */
@@ -428,11 +509,11 @@ const pages = {
     ${nav('inicio')}</div>`,
 
   perfil: () => `<div class="wrap">
-    <header class="bar"><h1 style="font-size:18px">Profile Name<span class="mu" style="font-weight:400;margin:2px 0 0">125.7k publicaciones</span></h1><a href="#menu" class="mbtn" aria-label="Abrir menú">${I('menu')}</a></header>
+    <header class="bar"><h1 style="font-size:18px">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}<span class="mu" style="font-weight:400;margin:2px 0 0">Perfil de GeffenWeverse</span></h1><a href="#menu" class="mbtn" aria-label="Abrir menú">${I('menu')}</a></header>
     <div class="cover" role="img" aria-label="Portada"></div>
-    <div class="ph"><div class="avl" role="img" aria-label="Foto de perfil"></div><button class="edit">Editar perfil</button></div>
-    <section class="info"><div class="nm">Profile Name<svg class="ok"><use href="#ok"/></svg></div><div class="mu" style="font-size:13px;margin:0 0 8px">@username · <span class="pill">${rolNombre()}</span></div>
-      <p class="mu" style="font-size:14px">Tu biografía aquí</p>
+    <div class="ph"><div class="avl" role="img" aria-label="Foto de perfil"></div><button class="edit" data-act="editprofile">Editar perfil</button></div>
+    <section class="info"><div class="nm">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}</div><div class="mu" style="font-size:13px;margin:0 0 8px">@${esc(currentProfile?.username || currentUser?.id?.slice(0,10) || 'usuario')} · <span class="pill">${rolNombre()}</span></div>
+      <p class="mu" style="font-size:14px">${esc(currentProfile?.bio || 'Añade una biografía a tu perfil.')}</p>
       <div class="meta"><span>${I('pin')}Ubicación</span><span>${I('cal')}Se unió en 2021</span></div>
       <div class="cnt"><a href="#siguiendo"><b>256</b> Siguiendo</a><a href="#seguidores"><b>165</b> Seguidores</a></div></section>
     <div class="ptabs"><span class="on">Publicaciones</span><span>Respuestas</span><span>Multimedia</span><span>Me gusta</span></div>
@@ -517,10 +598,8 @@ const pages = {
       ${fuera.length ? `<section class="card"><h2>Descubre comunidades</h2>${fuera.map((a, i) => fila(a, i, false)).join('')}</section>` : ''}${nav('comunidades')}</div>`;
   },
   /* Pantalla “Hola, ¿Eres?”: se muestra después del login/registro y antes de entrar a Inicio */
-  rol: () => `<div class="wrap" style="padding-top:48px"><h1 style="font-size:26px;font-weight:800;text-align:center;margin-bottom:6px">Hola, ¿Eres?</h1><p class="mu" style="text-align:center;margin-bottom:20px">Elige cómo quieres vivir GeffenWeverse</p>
-    <button class="card" style="display:block;width:100%;text-align:left;border:1px solid var(--line)" data-act="rol" data-rol="astroturista"><span style="display:flex;align-items:center;gap:10px">${I('heart')}<b style="font-size:17px">Astroturista</b></span><span class="mu" style="font-size:13px;line-height:1.4">Solo eres un fan que quiere apoyar a sus artistas.</span><span class="mu" style="line-height:1.4">No puedes publicar contenido, pero sí puedes dar Starlights, escribir comentarios y recibir Starlights en tus comentarios.</span></button>
-    <button class="card" style="display:block;width:100%;text-align:left;border:1px solid var(--line)" data-act="rol" data-rol="estrella"><span style="display:flex;align-items:center;gap:10px">${I('star')}<b style="font-size:17px">Estrella Creadora</b></span><span class="mu" style="font-size:13px;line-height:1.4">Sube contenido: fotos, videos y posts.</span></button></div>`,
-  crear: () => `<div class="wrap">${barra('Crear', '', '#inicio')}${store.get('gw-rol') === 'estrella'
+  rol: () => `<div class="wrap" style="padding-top:48px"><section class="card"><h1 style="font-size:24px;margin-bottom:8px">Tu cuenta GeffenWeverse</h1><p class="mu">Tu tipo de cuenta está asignado por el equipo administrativo y no puede cambiarse desde el perfil.</p><div class="row"><span class="t"><b>Rol actual</b><small>${rolNombre()}</small></span></div><a class="auth-link" href="#inicio">Continuar</a></section></div>`,
+  crear: () => `<div class="wrap">${barra('Crear', '', '#inicio')}${currentProfile?.rol === 'estrella'
     ? `<section class="card"><h2>¿Qué quieres subir?</h2>${row(null, 'doc', '#f472b6', 'Foto<small>Próximamente</small>')}${row(null, 'mega', '#60a5fa', 'Video<small>Próximamente</small>')}${row(null, 'cmt', '#22c55e', 'Post<small>Próximamente</small>')}</section>`
     : `<section class="card">${vacio('Solo las Estrellas Creadoras pueden subir contenido. Como Astroturista puedes dar Starlights y escribir comentarios.')}</section>`}${nav('crear')}</div>`,
   /* Shorts: lista vertical con desplazamiento de un video por pantalla */
@@ -534,7 +613,9 @@ const pages = {
   siguiendo: () => personas('siguiendo'),
   seguidores: () => personas('seguidores'),
   login: () => auth('login'),
-  registro: () => auth('registro')
+  registro: () => auth('registro'),
+  recuperar: () => auth('recuperar'),
+  restablecer: () => auth('restablecer')
 };
 
 /* Lista de personas: foto a la izquierda; nombre y @id apilados a la derecha */
@@ -561,27 +642,35 @@ function wiki(slug) {
 }
 
 function auth(modo) {
-  const reg = modo === 'registro';
-  const V = reg ? 'Regístrate con' : 'Continuar con';
-  const g = `<svg class="i" viewBox="0 0 24 24" style="stroke:none"><path fill="#4285F4" d="M22.600 12.200c0-.8-.1-1.500-.2-2.200H12v4.200h5.900a5 5 0 0 1-2.200 3.300v2.700h3.500c2.100-1.900 3.400-4.700 3.400-8z"/><path fill="#34A853" d="M12 23c2.900 0 5.400-1 7.200-2.600l-3.500-2.700c-1 .7-2.200 1-3.700 1-2.800 0-5.200-1.900-6-4.500H2.400v2.800A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M6 14.200a6.600 6.600 0 0 1 0-4.300V7.100H2.400a11 11 0 0 0 0 9.900z"/><path fill="#EA4335" d="M12 5.400c1.600 0 3 .6 4.100 1.600l3.100-3.100A11 11 0 0 0 2.400 7.100L6 9.900c.8-2.600 3.200-4.500 6-4.500z"/></svg>`;
-  const ap = `<svg class="i" viewBox="0 0 24 24" style="fill:#000;stroke:none"><path d="M16.400 12.600c0-2.300 1.900-3.400 2-3.500-1.100-1.600-2.800-1.800-3.400-1.800-1.400-.1-2.800.9-3.500.9s-1.800-.8-3-.8c-1.500 0-3 .9-3.800 2.300-1.600 2.800-.4 7 1.200 9.300.8 1.100 1.700 2.400 2.900 2.300 1.200 0 1.600-.7 3-.7s1.800.7 3 .7c1.300 0 2.100-1.100 2.800-2.300.9-1.300 1.300-2.500 1.300-2.600 0 0-2.500-1-2.500-3.800zM14.100 5.800c.6-.8 1.100-1.800.9-2.800-.9 0-2 .6-2.700 1.400-.6.700-1.100 1.800-1 2.700 1 .1 2-.5 2.800-1.300z"/></svg>`;
-  const em = `<svg class="i" viewBox="0 0 24 24" style="fill:#000;stroke:none"><path d="M3 5h18a1 1 0 0 1 1 1v.5l-10 6.500L2 6.500V6a1 1 0 0 1 1-1zm19 3.900V18a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8.900l10 6.500z"/></svg>`;
-  const b = (p, ic, t, extra = '') => `<button class="pb" data-auth="${p}" style="order:${extra}">${p === 'google' && !reg ? '<em>Inicio de sesión reciente</em>' : ''}${ic}${V} ${t}</button>`;
-  const dot = (p, d, l) => `<button class="rb" data-auth="${p}" aria-label="${l}"><svg class="i" viewBox="0 0 24 24" style="fill:#000;stroke:none"><path d="${d}"/></svg></button>`;
-  return `<div class="lt"><main style="padding:16px 12px"><div class="lcard">
-    <a class="bk" href="${reg ? '#login' : '#inicio'}" data-back aria-label="Volver">${I('back')}</a>
-    <span class="lg"><i>GeffenWeverse</i> account</span>
-    <div class="lg2"><h1>${reg ? '¡Disfruta todos los servicios de GeffenWeverse con un solo registro!' : '¡Inicia sesión en GeffenWeverse como te resulte más cómodo!'}</h1>
-    <div class="rt">${reg ? b('email', em, 'email', 1) + b('google', g, 'Google', 2) : b('google', g, 'Google', 1) + b('email', em, 'email', 2)}${b('apple', ap, 'Apple', 3)}
-      <div class="soc">${dot('line', 'M12 3C6.500 3 2 6.500 2 10.800c0 3.800 3.400 7 8 7.600.3.100.7.200.8.500.1.300.1.700 0 1l-.1.900c0 .3-.2 1 .9.500s5.800-3.400 7.900-5.800C21.100 13.900 22 12.400 22 10.800 22 6.500 17.500 3 12 3z', 'LINE')}${dot('kakao', 'M12 3C6.500 3 2 6.400 2 10.600c0 2.700 1.800 5.100 4.600 6.400l-1 3.600c-.1.300.2.500.5.300l4.200-2.800c.5.100 1.100.1 1.700.1 5.500 0 10-3.400 10-7.600S17.500 3 12 3z', 'Chat')}${reg ? '' : dot('x', 'M17.800 3h3.100l-6.800 7.700L22 21h-6.200l-4.900-6.300L5.300 21H2.200l7.200-8.300L1.800 3h6.400l4.400 5.800zm-1.100 16.200h1.700L7.200 4.700H5.400z', 'X')}</div>
-      <p class="sw2">${reg ? '¿Ya tienes una cuenta? <a href="#login">Iniciar sesión</a>' : '¿Es tu primera vez en GeffenWeverse?<br><a href="#registro">Registro de cuenta</a>'}</p></div></div></div></main>
-    <footer class="foot"><nav><a href="#login">Términos y condiciones</a><a href="#login"><b>Política de privacidad</b></a><a href="#login">Política de cookies</a><a href="#login">Anuncios</a></nav>
-    <label class="sel">${I('globe', '')}<select aria-label="Idioma"><option selected>&nbsp;español (latino)</option><option>&nbsp;English</option><option>&nbsp;한국어</option></select>${I('down')}</label></footer></div>`;
+  const reg=modo==='registro',recovery=modo==='recuperar',reset=modo==='restablecer';
+  const title=reg?'Crea tu cuenta GeffenWeverse':recovery?'Recupera tu cuenta':reset?'Crea una nueva contraseña':'Inicia sesión en GeffenWeverse';
+  let form='';
+  if(reg) form=`<form class="auth-form" data-auth-form="registro">
+    <label>Nombre para mostrar<input name="display_name" autocomplete="name" maxlength="80" required></label>
+    <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
+    <label>Contraseña<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+    <label>Confirmar contraseña<input name="confirm_password" type="password" autocomplete="new-password" minlength="8" required></label>
+    <button class="auth-submit" type="submit">Crear cuenta</button>
+    <p class="auth-note">Tu cuenta comienza como Astroturista. El rol Estrella Creadora solo puede asignarlo el equipo administrativo.</p></form>`;
+  else if(recovery) form=`<form class="auth-form" data-auth-form="recuperar"><label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label><button class="auth-submit" type="submit">Enviar instrucciones</button></form>`;
+  else if(reset) form=`<form class="auth-form" data-auth-form="restablecer"><label>Nueva contraseña<input name="password" type="password" autocomplete="new-password" minlength="8" required></label><label>Confirmar contraseña<input name="confirm_password" type="password" autocomplete="new-password" minlength="8" required></label><button class="auth-submit" type="submit">Guardar contraseña</button></form>`;
+  else form=`<form class="auth-form" data-auth-form="login"><label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label><label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label><button class="auth-submit" type="submit">Iniciar sesión</button><a class="auth-link" href="#recuperar">¿Olvidaste tu contraseña?</a></form>`;
+  const back=reg||recovery||reset?'#login':'#inicio';
+  return `<div class="lt"><main style="padding:16px 12px"><div class="lcard"><a class="bk" href="${back}" data-back aria-label="Volver">${I('back')}</a>
+    <span class="auth-brand">GEFFENWEVERSE account</span><h1>${title}</h1>
+    <p class="auth-note">${reg?'Regístrate con tu correo electrónico para acceder a los servicios de GeffenWeverse.':recovery?'Te enviaremos un enlace para recuperar el acceso a tu cuenta.':reset?'Elige una contraseña segura de al menos 8 caracteres.':'Accede con el correo electrónico y la contraseña de tu cuenta.'}</p>
+    ${form}<p class="sw2">${reg?'¿Ya tienes una cuenta? <a href="#login">Iniciar sesión</a>':recovery||reset?'<a href="#login">Volver al inicio de sesión</a>':'¿Es tu primera vez? <a href="#registro">Crear cuenta</a>'}</p>
+  </div></main><footer class="foot"><nav><a href="#login">Términos y condiciones</a><a href="#login"><b>Política de privacidad</b></a><a href="#login">Política de cookies</a></nav>
+  <label class="sel">${I('globe', '')}<select aria-label="Idioma"><option selected>&nbsp;español (latino)</option><option>&nbsp;English</option><option>&nbsp;한국어</option></select>${I('down')}</label></footer></div>`;
 }
 
 /* ===== 9. ROUTER ===== */
 function render() {
-  const r = location.hash.slice(1);
+  const r = location.hash.slice(1) || 'inicio';
+  if (!authReady) { $('#app').innerHTML = '<div class="auth-loading">Conectando de forma segura con GeffenWeverse…</div>'; return; }
+  const publicRoutes = ['login', 'registro', 'recuperar'];
+  if (!currentUser && !publicRoutes.includes(r)) { if (r !== 'login') location.hash = '#login'; else $('#app').innerHTML = pages.login(); return; }
+  if (currentUser && ['login', 'registro', 'recuperar'].includes(r)) { location.hash = '#inicio'; return; }
   const page = pages[r] || (r.startsWith('wiki-') ? () => wiki(r.slice(5)) : r.startsWith('merch-') ? () => merchPage(r.slice(6)) : pages.inicio);
   $('#app').innerHTML = page();
   applyPrefs();
@@ -599,6 +688,7 @@ addEventListener('hashchange', () => {
   render();
 });
 render();
+Auth.init();
 
 /* ===== 10. EVENTOS ===== */
 /* Acciones de botones con data-act */
@@ -633,10 +723,10 @@ const acciones = {
     document.body.appendChild(m); m.querySelector('.btn3').focus();
   },
   salirno() { const m = $('#modal'); if (m) m.remove(); },
-  salirsi() { const m = $('#modal'); if (m) m.remove(); /* TODO: cerrar la sesión real en tu backend */ location.hash = '#login'; },
+  async salirsi() { const m = $('#modal'); if (m) m.remove(); await Auth.signOut(); },
   unirse(t) { const s = t.dataset.slug; let m = J.get('comunidades', []); const ya = m.includes(s); m = ya ? m.filter(x => x !== s) : [...m, s]; J.set('comunidades', m); toast(ya ? 'Saliste de la comunidad' : '¡Te uniste a la comunidad!'); render(); },
   media() { const s = $('#sec-media'); if (s) s.scrollIntoView({ behavior: 'smooth' }); },
-  rol(t) { store.set('gw-rol', t.dataset.rol); toast(t.dataset.rol === 'estrella' ? '¡Bienvenida, Estrella Creadora!' : '¡Bienvenido, Astroturista!'); location.hash = '#inicio'; },
+  rol() { toast('Los roles solo pueden asignarse por el equipo administrativo.'); },
   sstar(t) { let d = J.get('short-stars', []); const id = Number(t.dataset.id), ya = d.includes(id); d = ya ? d.filter(x => x !== id) : [...d, id]; J.set('short-stars', d); t.classList.toggle('on', !ya); t.querySelector('span').textContent = Number(t.dataset.n) + (ya ? 0 : 1); },
   sseguir(t) { t.textContent = t.textContent === 'Seguir' ? 'Siguiendo' : 'Seguir'; },
   sproximo() { toast('Próximamente'); },
@@ -650,6 +740,11 @@ document.addEventListener('input', e => {
 });
 /* Guarda el idioma elegido en las listas desplegables */
 document.addEventListener('change', e => { const s = e.target.closest('select[data-pref]'); if (s) store.set('gw-' + s.dataset.pref, s.value); });
+document.addEventListener('submit', e => {
+  const form=e.target.closest('[data-auth-form]'); if(!form)return; e.preventDefault();
+  const mode=form.dataset.authForm;
+  if(mode==='login') Auth.login(form); else if(mode==='registro') Auth.register(form); else if(mode==='recuperar') Auth.recover(form); else if(mode==='restablecer') Auth.updatePassword(form);
+});
 document.addEventListener('click', e => {
   /* FAQ tipo acordeón: al abrir una pregunta se cierra la anterior; tocarla de nuevo la cierra */
   const sm = e.target.closest('.faq summary');

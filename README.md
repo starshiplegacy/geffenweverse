@@ -10,7 +10,7 @@ This repository is the central source-control location for the GeffenWeverse web
 
 ```
 .
-├── geffenweverse-web.html
+├── geffenweverse-web.html  # frontend file to be added
 ├── README.md
 ├── .gitignore
 └── supabase/
@@ -21,7 +21,7 @@ The migration directory contains the database changes in chronological order. Ap
 
 ## Development
 
-The current web frontend is maintained as a standalone HTML application. Open `geffenweverse-web.html` in a modern browser for a local visual review.
+The planned web frontend is a standalone HTML application. Once `geffenweverse-web.html` is added, it can be opened in a modern browser for a local visual review.
 
 Backend services and environment-specific settings must be configured separately. Do not commit API secrets, service-role keys, database passwords, access tokens, or private credentials.
 

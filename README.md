@@ -1,41 +1,52 @@
 # GeffenWeverse
 
-GeffenWeverse is a community and fan-platform project within the Starship Legacy ecosystem.
+GeffenWeverse es una plataforma de comunidad y fans dentro del ecosistema Starship Legacy.
 
-## Repository
+## Fuente oficial de la interfaz
 
-This repository is the central source-control location for the GeffenWeverse web application and its supporting backend assets.
+La versión de referencia aprobada es:
 
-## Project structure
+- **Actual:** [`geffenweverse-web-2026-11-14.html`](./geffenweverse-web-2026-11-14.html)
+- **Respaldo anterior:** [`geffenweverse-web.html`](./geffenweverse-web.html) — conservar; no usar como base para nuevas integraciones.
+
+La interfaz actual es una aplicación HTML/CSS/JavaScript de archivo único. Mantener su diseño y comportamiento visual mientras se conecta progresivamente con el backend.
+
+## Estructura del repositorio
 
 ```
 .
-├── geffenweverse-web.html  # frontend file to be added
+├── geffenweverse-web-2026-11-14.html  # interfaz oficial de referencia
+├── geffenweverse-web.html             # versión anterior conservada
 ├── README.md
-├── .gitignore
+├── docs/
+│   └── INTEGRATION_MATRIX.md           # estado por pantalla y plan de integración
 └── supabase/
-    └── migrations/
+    └── migrations/                     # SQL versionado
 ```
 
-The migration directory contains the database changes in chronological order. Apply migrations only to the intended Supabase project and review each SQL file before running it.
+## Estado actual
 
-## Development
+- El HTML oficial está versionado en GitHub.
+- La interfaz todavía contiene datos de ejemplo y acciones simuladas.
+- Supabase contiene el esquema principal y políticas RLS; la interfaz aún no está conectada a un cliente Supabase.
+- No hay Edge Functions desplegadas en el proyecto consultado.
+- No se ha establecido todavía un proveedor de hosting ni una configuración de despliegue dentro de este repositorio.
 
-The planned web frontend is a standalone HTML application. Once `geffenweverse-web.html` is added, it can be opened in a modern browser for a local visual review.
+Consulta la [matriz de integración](./docs/INTEGRATION_MATRIX.md) para ver cada pantalla, sus tablas, operaciones y pendientes.
 
-Backend services and environment-specific settings must be configured separately. Do not commit API secrets, service-role keys, database passwords, access tokens, or private credentials.
+## Supabase y seguridad
 
-## Database migrations
+- Mantener RLS habilitado en las tablas expuestas.
+- Usar solo una clave publishable en el frontend.
+- No guardar `service_role`, claves secretas de pago, contraseñas ni tokens privados en GitHub o en el HTML.
+- Mantener `digital_codes` sin acceso desde el cliente; el canje debe validarse del lado servidor.
+- Los pagos deben verificarse del lado servidor antes de cambiar el estado de un pedido.
+- No volver a ejecutar migraciones existentes sin reconciliar primero los archivos SQL con el historial real del proyecto.
 
-Supabase migration files are stored in `supabase/migrations/` and use timestamp-prefixed filenames. Apply them in ascending filename order using the Supabase CLI or the project's approved migration workflow.
+## Desarrollo y despliegue
 
-## Security
+El HTML puede abrirse directamente en un navegador para una revisión visual. Para producción, primero se debe definir el proveedor de hosting, la ruta de entrada y la configuración pública de Supabase. No se debe publicar como “integrado” hasta probar autenticación, políticas, almacenamiento y flujos de datos reales.
 
-- Keep Row Level Security enabled on tables containing user or application data.
-- Use only publishable client keys in browser code.
-- Keep privileged keys and server-side credentials outside the repository.
-- Review schema and policy changes before applying them to production.
+## Historial y cambios
 
-## Status
-
-This repository is being prepared as the shared source of truth for GeffenWeverse. Deployment configuration and environment-specific setup should be documented here when finalized.
+Mantener la versión anterior como respaldo. Los cambios de integración deben documentarse y realizarse en commits pequeños, verificables y reversibles.

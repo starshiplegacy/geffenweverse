@@ -511,7 +511,7 @@ const pages = {
   perfil: () => `<div class="wrap">
     <header class="bar"><h1 style="font-size:18px">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}<span class="mu" style="font-weight:400;margin:2px 0 0">Perfil de GeffenWeverse</span></h1><a href="#menu" class="mbtn" aria-label="Abrir menú">${I('menu')}</a></header>
     <div class="cover" role="img" aria-label="Portada"></div>
-    <div class="ph"><div class="avl" role="img" aria-label="Foto de perfil"></div><button class="edit" data-act="editprofile">Editar perfil</button></div>
+    <div class="ph"><div class="avl" role="img" aria-label="Foto de perfil"></div><button class="edit" type="button" disabled aria-disabled="true" title="Edición de perfil pendiente">Editar perfil</button></div>
     <section class="info"><div class="nm">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}</div><div class="mu" style="font-size:13px;margin:0 0 8px">@${esc(currentProfile?.username || currentUser?.id?.slice(0,10) || 'usuario')} · <span class="pill">${rolNombre()}</span></div>
       <p class="mu" style="font-size:14px">${esc(currentProfile?.bio || 'Añade una biografía a tu perfil.')}</p>
       <div class="meta"><span>${I('pin')}Ubicación</span><span>${I('cal')}Se unió en 2021</span></div>
@@ -526,6 +526,7 @@ const pages = {
   menu: () => `<div class="wrap"><header class="bar"><a href="#perfil" data-back aria-label="Volver">${I('back')}</a><h1>Menú</h1></header>
     <section class="card cols"><div>${row('#pedidos', 'bag', '#2dd4bf', 'Historial de pedidos de la tienda<small>Starship Legacy Shop</small>')}${row('#eventos', 'cal', '#34d399', 'Solicitudes de eventos')}${row('#codigo', 'card', '#c084fc', 'Ingresar el código digital')}${row('#configuracion', 'gear', '#6b6b6b', 'Configuración')}</div>
       <div>${row('#cupones', 'card', '#10b981', 'Buzón de cupones')}${row('#multimedia', 'doc', '#3b82f6', 'Multimedia comprada')}${row('#anuncios', 'mega', '#f59e0b', 'Anuncios')}${row('#faq', 'faq', '#a78bfa', 'FAQ')}</div></section>
+    <section class="card"><button class="row" data-act="salir" style="color:#dc2626"><span class="t"><b>Cerrar sesión</b><small>${esc(currentUser?.email || '')}</small></span></button></section>
     <section class="card">${rowG('#spot', 'map', 'GeffenWeverse Spot')}${rowG('#magazine', 'book', 'GeffenWeverse Magazine')}${rowG('#concerts', 'mic', 'GeffenWeverse Concerts')}${rowG('#survey', 'clip', 'GeffenWeverse Survey')}</section></div>`,
 
   configuracion: () => {

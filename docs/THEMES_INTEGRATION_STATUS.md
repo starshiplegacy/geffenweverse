@@ -8,7 +8,8 @@
 - La extensión presenta un catálogo informativo; **no habilita compras, checkout ni aceptación de pagos**.
 - La lista de temas adquiridos se deriva de pedidos leídos para la sesión actual. La interfaz nunca debe cambiar un pedido a pagado.
 - El SQL `20261115120000_temas_catalogo.sql` sigue pendiente de reconciliación con el historial real de Supabase. No ejecutarlo ni duplicarlo hasta confirmar el flujo oficial de migraciones.
-- No se ha verificado el despliegue web en un proveedor de hosting desde este repositorio.
+- GitHub Pages: despliegue verificado correctamente el 2026-11-15 (workflow run [43699324565](https://github.com/starshiplegacy/geffenweverse/actions/runs/43699324565)); la URL pública respondió HTTP 200.
+- Se verificó visualmente la pantalla inicial de acceso en navegador automatizado y se validó la sintaxis JavaScript del HTML principal y de la extensión. No se ha realizado todavía una prueba completa con sesión autenticada ni una inspección de consola del navegador.
 
 ## Dependencias del HTML oficial
 
@@ -16,7 +17,7 @@ La extensión espera que `geffenweverse-web-2026-11-14.html` cargue primero y de
 
 ## Pruebas manuales antes de publicar
 
-1. Servir el repositorio por HTTP(S) y comprobar que la interfaz oficial y `gw-extensions.js` cargan sin errores en consola.
+1. Revisar en un navegador real la consola y la carga de `gw-extensions.js` en desktop y móvil.
 2. Probar ruta inicial, `#tienda-temas`, `#temas` y `#pedidos`; verificar que el catálogo indica claramente que las compras están desactivadas.
 3. Sin sesión: confirmar que no aparecen pedidos ni temas de otra cuenta y que el inicio de sesión se solicita donde corresponda.
 4. Con una cuenta sin compras: confirmar estado vacío correcto.
@@ -24,4 +25,4 @@ La extensión espera que `geffenweverse-web-2026-11-14.html` cargue primero y de
 6. Cambiar de cuenta rápidamente mientras se carga el historial; confirmar que una respuesta tardía no mezcla datos entre cuentas.
 7. Solo después de que exista un flujo de pago en servidor, probar sandbox de PayPal, webhook/Edge Function, idempotencia, RLS y conciliación de estados.
 
-Esta lista es una guía; no acredita que el hosting, las políticas remotas o el pago hayan sido probados.
+Esta lista es una guía; la comprobación HTTP y visual de la pantalla inicial no acredita que todas las rutas, las políticas remotas, la mensajería autenticada o el pago hayan sido probados.

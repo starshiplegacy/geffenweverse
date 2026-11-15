@@ -312,7 +312,11 @@ button.radio.on{color:#22c55e}button.radio.off{color:#3b82f6}
 .gw-profile-role-card div{display:flex;flex-direction:column;gap:4px}
 .gw-profile-role-card b{font-size:11px}.gw-profile-role-card strong{font-size:13px}.gw-profile-role-card small{font-size:10px;line-height:1.45;color:var(--mu)}
 
-\n.gw-username-field{display:flex;align-items:center;gap:8px}.gw-username-field>span{font-weight:800;color:var(--mu);font-size:15px}.gw-username-field input{flex:1;min-width:0}\n.gw-comment-form{display:flex;gap:8px;margin-top:12px}.gw-comment-form input{flex:1;min-width:0}.gw-comment-form button{border-radius:999px;padding:9px 14px;background:var(--ac);color:#061014;font-weight:800}.gw-mention{color:var(--ac);font-weight:800}\n</style>
+\n.gw-username-field{display:flex;align-items:center;gap:8px}
+.gw-username-field>span{font-weight:800;color:var(--mu);font-size:15px}
+.gw-username-field input{flex:1;min-width:0}\n.gw-comment-form{display:flex;gap:8px;margin-top:12px}
+.gw-comment-form input{flex:1;min-width:0}.gw-comment-form button{border-radius:999px;padding:9px 14px;background:var(--ac);color:#061014;font-weight:800}
+.gw-mention{color:var(--ac);font-weight:800}\n</style>
 
 <style id="gw-responsive-system">
 /* ===== GEFFENWEVERSE RESPONSIVE SYSTEM ===== */
@@ -1055,7 +1059,8 @@ function auth(modo) {
 function feedPage() {
   return `<div class="wrap"><header class="bar"><a href="#inicio" data-back aria-label="Volver">←</a><h1>Publicaciones<span class="mu" style="font-weight:400;font-size:12px;margin:2px 0 0">Comunidad GeffenWeverse</span></h1></header><section id="gw-community-feed"><p class="mu" style="text-align:center;padding:22px">Cargando publicaciones…</p></section></div>`;
 }
-function renderCommentMentions(value,people){const safe=esc(value||'');return safe.replace(/(^|\s)@([A-Za-z0-9_]{2,30})\b/g,(all,prefix,name)=>{const found=[...people.values()].find(p=>(p.username||'').toLowerCase()===name.toLowerCase());return prefix+(found?'<span class="gw-mention">@'+esc(found.username)+'</span>':'@'+name);});}\nasync function loadCommunityFeed() {
+function renderCommentMentions(value,people){const safe=esc(value||'');return safe.replace(/(^|\s)@([A-Za-z0-9_]{2,30})\b/g,(all,prefix,name)=>{const found=[...people.values()].find(p=>(p.username||'').toLowerCase()===name.toLowerCase());return prefix+(found?'<span class="gw-mention">@'+esc(found.username)+'</span>':'@'+name);});}
+async function loadCommunityFeed() {
   const host=document.getElementById('gw-community-feed'); if(!host)return;
   const {data:posts,error}=await supabaseClient.from('posts').select('id,author_id,tipo,texto,media_url,created_at').order('created_at',{ascending:false}).limit(40);
   if(error){host.innerHTML='<section class="card"><p class="mu">No se pudo cargar el feed.</p></section>';return;}

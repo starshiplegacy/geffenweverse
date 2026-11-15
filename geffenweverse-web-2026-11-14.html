@@ -883,7 +883,7 @@ const pages = {
   menu: () => `<div class="wrap"><header class="bar"><a href="#perfil" data-back aria-label="Volver">${I('back')}</a><h1>Menú</h1></header>
     <section class="card cols"><div>${row('#pedidos', 'bag', '#2dd4bf', 'Historial de pedidos de la tienda<small>Geffen Shop</small>')}${row('#temas', 'star', '#d4af37', 'Temas')}${row('#geffennie', 'star', '#2563eb', 'Geffennie')}${row('#eventos', 'cal', '#34d399', 'Solicitud de eventos')}</div>
       <div>${row('#codigo', 'card', '#c084fc', 'Ingresar el código digital')}${row('#cupones', 'card', '#10b981', 'Buzón de cupones')}${row('#multimedia', 'doc', '#3b82f6', 'Multimedia comprada')}${row('#configuracion', 'gear', '#6b6b6b', 'Configuración')}${row('#anuncios', 'mega', '#f59e0b', 'Anuncios')}${row('#faq', 'faq', '#a78bfa', 'FAQ')}${isGeffenAdmin ? row('#admin', 'shield', '#2563eb', 'Administración de insignias') : ''}</div></section>
-    <section class="card"><button class="row" data-act="salir" style="color:#dc2626"><span class="t"><b>Cerrar sesión</b><small>${esc(currentUser?.email || '')}</small></span></button></section>
+    <section class="card"><button class="row" data-act="salir" style="color:#dc2626"><span class="t"><b>Cerrar sesión</b><small>${esc(currentUser?.email || '')} ${insigniasMarkup(currentBadges)}</small></span></button></section>
     <section class="card">${rowG('#spot', 'map', 'GeffenWeverse Spot')}${rowG('#magazine', 'book', 'GeffenWeverse Magazine')}${rowG('#concerts', 'mic', 'GeffenWeverse Concerts')}${rowG('#survey', 'clip', 'GeffenWeverse Survey')}${rowG('#gallery', 'book', 'Gallery · Biblioteca creativa')}</section></div>`,
 
   configuracion: () => {

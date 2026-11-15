@@ -99,6 +99,7 @@
             id: String(o.id).slice(0, 8).toUpperCase(),
             fecha: fechaLocal(o.created_at),
             estado: o.estado,
+            metodo: o.metodo || null,
             total: usd(o.total),
             articulos: items.map(item => item.nombre + (item.cantidad > 1 ? ' x' + item.cantidad : '')).join(', ') || 'Sin artículos'
           };
@@ -149,7 +150,7 @@
     return `<div class="wrap">${barra('Temas', 'Tus temas comprados', '#configuracion')}<section class="card">${estadoCarga()}${fila('', 'Predeterminado', 'Claro, oscuro o del dispositivo (ver Pantalla)', !activo)}${mios.map(t => fila(t.key, t.nombre, 'Comprado', activo === t.key)).join('')}${loadState === 'ready' && !mios.length ? '<p class="mu">Aún no tienes temas adquiridos.</p>' : ''}${currentUser ? '' : vacio('Inicia sesión para consultar tus temas.')}</section><section class="card"><a class="row" href="#tienda-temas"><span class="t"><b>Ver catálogo de temas</b><small>Las compras están desactivadas temporalmente.</small></span>${I('chev', 'chev')}</a></section></div>`;
   };
 
-  pages.pedidos = () => `<div class="lt">${tiendaTop('pedidos')}<main class="shop"><h1>Mis Pedidos</h1><p class="mu" style="margin:6px 0 0">El historial se muestra solo para la cuenta autenticada.</p>${estadoCarga()}${loadState === 'ready' ? pedidos.length ? pedidos.map(p => `<article class="ord"><div><b>Pedido ${esc(p.id)}</b><div class="mu">${esc(p.fecha)} · ${esc(p.articulos)} · ${esc(p.metodo || 'PayPal')}</div></div><div style="text-align:right"><b style="color:var(--brand)">${esc(p.estado)}</b><div><b>${esc(p.total)}</b></div></div></article>`).join('') : '<section class="empty"><p>No hay pedidos.</p></section>' : ''}</main>${upBtn}</div>`;
+  pages.pedidos = () => `<div class="lt">${tiendaTop('pedidos')}<main class="shop"><h1>Mis Pedidos</h1><p class="mu" style="margin:6px 0 0">El historial se muestra solo para la cuenta autenticada.</p>${estadoCarga()}${loadState === 'ready' ? pedidos.length ? pedidos.map(p => `<article class="ord"><div><b>Pedido ${esc(p.id)}</b><div class="mu">${esc(p.fecha)} · ${esc(p.articulos)} · ${esc(p.metodo || 'Método no indicado')}</div></div><div style="text-align:right"><b style="color:var(--brand)">${esc(p.estado)}</b><div><b>${esc(p.total)}</b></div></div></article>`).join('') : '<section class="empty"><p>No hay pedidos.</p></section>' : ''}</main>${upBtn}</div>`;
 
   const radioFix = html => html.replace(/Starship Listing Party/g, 'Geffen Radio').replace(/<b>Radio FM<\/b>/g, '<b>Geffen Radio</b>');
   const envolver = (key, fn) => {

@@ -257,6 +257,34 @@ button.radio.on{color:#22c55e}button.radio.off{color:#3b82f6}
 .gw-gallery-actions button{padding:10px 13px;border-radius:99px;background:var(--ac);color:#061014;font-size:10px;font-weight:800}
 .gw-gallery-actions button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:560px){.gw-gallery-grid{grid-template-columns:1fr}.gw-gallery-hero{padding:18px}.gw-gallery-hero h2{font-size:24px}}
+
+/* ===== Editor de perfil: imágenes y datos ===== */
+.gw-profile-cover{position:relative;overflow:hidden;background:#24242a}
+.gw-profile-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.gw-profile-avatar{overflow:hidden;display:grid;place-items:center}
+.gw-profile-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.edit:not(:disabled){cursor:pointer}
+.gw-profile-modal{position:fixed;inset:0;z-index:30;background:#000b;display:grid;place-items:center;padding:16px}
+.gw-profile-modal[hidden]{display:none}
+.gw-profile-editor{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:18px;padding:18px}
+.gw-profile-editor-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.gw-profile-editor-head h2{font-size:19px}.gw-profile-editor-head p{color:var(--mu);font-size:11px;margin-top:4px}
+.gw-profile-editor-head button{font-size:20px;padding:0 4px}
+.gw-profile-label{display:block;font-size:12px;font-weight:700;margin:16px 0 8px}
+.gw-profile-upload-row{display:flex;align-items:center;gap:14px}
+.gw-profile-preview.avatar{width:76px;height:76px;border-radius:50%;border:1px solid var(--line);background:#25252a;display:grid;place-items:center;overflow:hidden;font-size:24px;flex:none}
+.gw-profile-preview img,.gw-profile-banner-preview img{width:100%;height:100%;object-fit:cover}
+.gw-profile-upload-copy{min-width:0;flex:1}
+.gw-profile-upload-copy input,.gw-profile-editor input[type=file]{max-width:100%;font-size:11px}
+.gw-profile-upload-copy small,.gw-profile-help{display:block;color:var(--mu);font-size:10px;line-height:1.5;margin-top:6px}
+.gw-profile-banner-preview{width:100%;aspect-ratio:3/1;border-radius:10px;background:#25252a;border:1px solid var(--line);overflow:hidden;display:grid;place-items:center;color:var(--mu);font-size:11px}
+.gw-profile-editor textarea{resize:vertical}
+.gw-profile-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.gw-profile-form-actions button{padding:10px 16px;border-radius:99px;font-size:11px;font-weight:700}
+.gw-profile-form-actions button[type=button]{border:1px solid var(--line)}
+.gw-profile-form-actions button[type=submit]{background:var(--ac);color:#061014}
+.gw-profile-form-actions button:disabled{opacity:.55;cursor:wait}
+
 </style>
 </head>
 <body>
@@ -665,17 +693,28 @@ const pages = {
 
   perfil: () => `<div class="wrap">
     <header class="bar"><h1 style="font-size:18px">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}<span class="mu" style="font-weight:400;margin:2px 0 0">Perfil de GeffenWeverse</span></h1><a href="#menu" class="mbtn" aria-label="Abrir menú">${I('menu')}</a></header>
-    <div class="cover" role="img" aria-label="Portada"></div>
-    <div class="ph"><div class="avl" role="img" aria-label="Foto de perfil"></div><button class="edit" type="button" disabled aria-disabled="true" title="Edición de perfil pendiente">Editar perfil</button></div>
+    <div class="cover gw-profile-cover" role="img" aria-label="Banner de perfil">${currentProfile?.banner_url ? `<img src="${esc(currentProfile.banner_url)}" alt="">` : ''}</div>
+    <div class="ph"><div class="avl gw-profile-avatar" role="img" aria-label="Foto de perfil">${currentProfile?.avatar_url ? `<img src="${esc(currentProfile.avatar_url)}" alt="">` : ''}</div><button class="edit" type="button" data-profile-edit>Editar perfil</button></div>
     <section class="info"><div class="nm">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}</div><div class="mu" style="font-size:13px;margin:0 0 8px">@${esc(currentProfile?.username || currentUser?.id?.slice(0,10) || 'usuario')} · <span class="pill">${rolNombre()}</span></div>
       <p class="mu" style="font-size:14px">${esc(currentProfile?.bio || 'Añade una biografía a tu perfil.')}</p>
-      <div class="meta"><span>${I('pin')}Ubicación</span><span>${I('cal')}Se unió en 2021</span></div>
+      <div class="meta"><span>${I('pin')}Ubicación</span><span>${I('cal')}Se unió en ${currentProfile?.created_at ? new Date(currentProfile.created_at).getFullYear() : '—'}</span></div>
       <div class="cnt"><a href="#siguiendo"><b>256</b> Siguiendo</a><a href="#seguidores"><b>165</b> Seguidores</a></div></section>
     <div class="ptabs"><span class="on">Publicaciones</span><span>Respuestas</span><span>Multimedia</span><span>Me gusta</span></div>
     <section class="post"><span class="av"></span><div style="flex:1"><div class="h"><strong>Profile Name</strong><svg class="ok" style="width:15px;height:15px"><use href="#ok"/></svg>@username · 32m</div>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Hic nihil fuit, quod quaereremus.</p>
       <div class="a"><span>${I('cmt')}568k</span><span>${I('rt')}75k</span><span>${I('heart')}157</span>${I('share')}</div></div></section>
-    ${nav('perfil')}</div>`,
+    ${nav('perfil')}
+    <div class="gw-profile-modal" data-profile-modal hidden><section class="gw-profile-editor" role="dialog" aria-modal="true" aria-labelledby="gw-profile-title">
+      <div class="gw-profile-editor-head"><div><h2 id="gw-profile-title">Editar perfil</h2><p>Personaliza tu presencia en GeffenWeverse</p></div><button type="button" data-profile-close aria-label="Cerrar">✕</button></div>
+      <form data-profile-form>
+        <label class="gw-profile-label">Foto de perfil</label><div class="gw-profile-upload-row"><div class="gw-profile-preview avatar" data-avatar-preview>${currentProfile?.avatar_url ? `<img src="${esc(currentProfile.avatar_url)}" alt="">` : '＋'}</div><div class="gw-profile-upload-copy"><input type="file" name="avatar" accept=".jpg,.jpeg,.png,image/jpeg,image/png"><small>JPG o PNG · 800 × 800 px · 1:1. Se muestra en círculo; mantén lo importante en el centro. Sin GIF ni transparencia.</small></div></div>
+        <label class="gw-profile-label">Banner</label><div class="gw-profile-banner-preview" data-banner-preview>${currentProfile?.banner_url ? `<img src="${esc(currentProfile.banner_url)}" alt="">` : 'Vista previa del banner'}</div><input type="file" name="banner" accept=".jpg,.jpeg,.png,image/jpeg,image/png"><small class="gw-profile-help">JPG o PNG · 1500 × 500 px · proporción 3:1. Sin GIF ni transparencia.</small>
+        <label class="gw-profile-label" for="gw-profile-name">Nombre</label><input class="inp" id="gw-profile-name" name="display_name" maxlength="80" value="${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || '')}" required>
+        <label class="gw-profile-label" for="gw-profile-username">Nombre de usuario</label><input class="inp" id="gw-profile-username" name="username" maxlength="30" pattern="[A-Za-z0-9_]+" value="${esc(currentProfile?.username || '')}" required><small class="gw-profile-help">Solo letras, números y guion bajo.</small>
+        <label class="gw-profile-label" for="gw-profile-bio">Biografía</label><textarea class="inp" id="gw-profile-bio" name="bio" maxlength="240" rows="3" placeholder="Cuéntale algo a la comunidad…">${esc(currentProfile?.bio || '')}</textarea>
+        <div class="gw-profile-form-actions"><button type="button" data-profile-close>Cancelar</button><button type="submit">Guardar cambios</button></div>
+      </form>
+    </section></div></div>`,
 
   /* Pantalla del menú (se abre con las dos rayitas del perfil). Activos: pedidos y configuración */
   menu: () => `<div class="wrap"><header class="bar"><a href="#perfil" data-back aria-label="Volver">${I('back')}</a><h1>Menú</h1></header>
@@ -886,6 +925,68 @@ document.addEventListener('click', e => {
   document.querySelectorAll('[data-gw-gallery-card]').forEach(card => { card.hidden = value !== 'all' && card.dataset.gwGalleryCard !== value; });
 });
 
+
+/* ===== Editor de perfil: validación y guardado en Supabase ===== */
+const PROFILE_MEDIA_BUCKET = 'profile-media';
+async function validateProfileImage(file, kind) {
+  if (!file) return null;
+  const expected = kind === 'avatar' ? [800,800] : [1500,500];
+  const label = kind === 'avatar' ? 'foto de perfil' : 'banner';
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['jpg','jpeg','png'].includes(ext) || !['image/jpeg','image/png'].includes(file.type)) throw new Error('La '+label+' debe ser JPG o PNG. No se admiten GIF ni otros formatos.');
+  if (file.size > 10 * 1024 * 1024) throw new Error('La imagen supera el límite de 10 MB.');
+  const bitmap = await createImageBitmap(file);
+  try {
+    if (bitmap.width !== expected[0] || bitmap.height !== expected[1]) throw new Error('La '+label+' debe medir exactamente '+expected[0]+' × '+expected[1]+' px.');
+    if (file.type === 'image/png') {
+      const canvas = document.createElement('canvas'); canvas.width=bitmap.width; canvas.height=bitmap.height;
+      const ctx=canvas.getContext('2d',{willReadFrequently:true}); ctx.drawImage(bitmap,0,0);
+      const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      for(let i=3;i<pixels.length;i+=4) if(pixels[i]!==255) throw new Error('El PNG tiene transparencia. Expórtalo sin transparencia (fondo opaco) y vuelve a intentarlo.');
+    }
+  } finally { bitmap.close(); }
+  return true;
+}
+function profilePreview(input, target) {
+  if (!input || !target) return;
+  input.addEventListener('change', async () => {
+    const file=input.files?.[0]; if(!file)return;
+    try {
+      await validateProfileImage(file,input.name);
+      const url=URL.createObjectURL(file); target.innerHTML='<img alt="Vista previa" src="'+url+'">';
+    } catch(error) { input.value=''; toast(error.message); }
+  });
+}
+async function saveProfile(form) {
+  if(!currentUser || !currentProfile) return toast('No se pudo cargar tu perfil. Vuelve a iniciar sesión.');
+  const submit=form.querySelector('[type=submit]'); submit.disabled=true; submit.textContent='Guardando…';
+  try {
+    const display_name=form.display_name.value.trim(), username=form.username.value.trim(), bio=form.bio.value.trim();
+    if(!display_name || !username) throw new Error('Completa tu nombre y nombre de usuario.');
+    if(!/^[A-Za-z0-9_]{2,30}$/.test(username)) throw new Error('El nombre de usuario debe tener entre 2 y 30 caracteres y usar solo letras, números o guion bajo.');
+    const avatar=form.avatar.files?.[0], banner=form.banner.files?.[0];
+    await validateProfileImage(avatar,'avatar'); await validateProfileImage(banner,'banner');
+    const updates={display_name,username,bio};
+    for(const [kind,file] of [['avatar',avatar],['banner',banner]]) {
+      if(!file) continue;
+      const ext=file.type==='image/png'?'png':'jpg';
+      const objectPath=currentUser.id+'/'+kind+'.'+ext;
+      const {error:uploadError}=await supabaseClient.storage.from(PROFILE_MEDIA_BUCKET).upload(objectPath,file,{upsert:true,contentType:file.type,cacheControl:'3600'});
+      if(uploadError) throw uploadError;
+      const {data}=supabaseClient.storage.from(PROFILE_MEDIA_BUCKET).getPublicUrl(objectPath);
+      updates[kind==='avatar'?'avatar_url':'banner_url']=data.publicUrl+'?v='+Date.now();
+    }
+    const {data,error}=await supabaseClient.from('profiles').update(updates).eq('id',currentUser.id).select('id,username,display_name,bio,avatar_url,banner_url,rol,created_at').single();
+    if(error) throw error;
+    currentProfile=data; toast('Perfil actualizado correctamente.'); render();
+  } catch(error) {
+    console.error('Error guardando perfil:',error);
+    const m=(error?.message||'').toLowerCase();
+    if(m.includes('duplicate key')||m.includes('unique')) toast('Ese nombre de usuario ya está en uso.');
+    else toast(error?.message||'No se pudo guardar el perfil.');
+  } finally { if(submit.isConnected){submit.disabled=false;submit.textContent='Guardar cambios';} }
+}
+
 /* ===== 10. EVENTOS ===== */
 /* Acciones de botones con data-act */
 const acciones = {
@@ -946,6 +1047,19 @@ document.addEventListener('click', e => {
   if(view){e.preventDefault();const welcome=$('#ga-welcome'),form=$('#ga-form');if(welcome)welcome.hidden=view.dataset.gaView!=='welcome';if(form)form.hidden=view.dataset.gaView!=='email';if(view.dataset.gaView==='email'){const input=$('#ga-login-email');if(input)input.focus();}return;}
   const route=e.target.closest('[data-ga-route]');
   if(route){e.preventDefault();location.hash='#'+route.dataset.gaRoute;return;}
+});
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-profile-edit]')) {
+    const modal=document.querySelector('[data-profile-modal]'); if(modal) modal.hidden=false;
+    const form=modal?.querySelector('[data-profile-form]');
+    if(form){profilePreview(form.avatar,modal.querySelector('[data-avatar-preview]'));profilePreview(form.banner,modal.querySelector('[data-banner-preview]'));}
+    return;
+  }
+  if(e.target.closest('[data-profile-close]')) { const modal=document.querySelector('[data-profile-modal]'); if(modal) modal.hidden=true; return; }
+});
+document.addEventListener('submit', e => {
+  const form=e.target.closest('[data-profile-form]'); if(!form)return;
+  e.preventDefault(); saveProfile(form);
 });
 document.addEventListener('click', e => {
   /* FAQ tipo acordeón: al abrir una pregunta se cierra la anterior; tocarla de nuevo la cierra */

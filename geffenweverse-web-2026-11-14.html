@@ -447,7 +447,6 @@ const radioAudio = new Audio();
 radioAudio.preload = 'none';
 radioAudio.volume = 0.35;
 let radioStations = [], radioIndex = -1, radioLoading = false, radioLoaded = false;
-const radioFailedStations = new Set();
 const radioTags = ['k-pop', 'kpop', 'pop', 'latin pop', 'pop latino'];
 const radioLabel = s => [s?.name, s?.country].filter(Boolean).join(' · ') || 'GEFFEN RADIO';
 function radioStatus(message) { document.querySelectorAll('[data-radio-station]').forEach(el => el.textContent = message); }
@@ -472,7 +471,7 @@ async function radioLoadCatalog() {
     });
     radioStations=radioShuffle([...unique.values()]);
     if(!radioStations.length)throw new Error('No encontramos emisoras con streams HTTPS compatibles.');
-    radioFailedStations.clear(); radioIndex=Math.floor(Math.random()*radioStations.length); radioLoaded=true;
+    radioIndex=Math.floor(Math.random()*radioStations.length); radioLoaded=true;
     radioSetStation(radioIndex,true);
   } catch(error) { radioLoaded=false; console.error('GEFFEN RADIO:',error); radioStatus('No se pudo conectar la radio. Abre de nuevo los controles para reintentar.'); }
   finally { radioLoading=false; }

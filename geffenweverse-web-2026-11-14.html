@@ -1158,7 +1158,7 @@ function render() {
   const publicRoutes = ['login', 'registro', 'recuperar'];
   if (!currentUser && !publicRoutes.includes(r)) { if (r !== 'login') location.hash = '#login'; else $('#app').innerHTML = pages.login(); return; }
   if (currentUser && ['login', 'registro', 'recuperar'].includes(r)) { location.hash = '#inicio'; return; }
-  const page = pages[r] || (r.startsWith('wiki-') ? () => wiki(r.slice(5)) : r.startsWith('merch-') ? () => merchPage(r.slice(6)) : pages.inicio);
+  const page = pages[r] || (r.startsWith('usuario-') ? () => userPage(r.slice(8)) : r.startsWith('wiki-') ? () => wiki(r.slice(5)) : r.startsWith('merch-') ? () => merchPage(r.slice(6)) : pages.inicio);
   $('#app').innerHTML = page();
   applyPrefs();
   if (r === 'admin') adminLoadUsers();
@@ -1292,7 +1292,7 @@ const acciones = {
     J.set('multimedia', l); toast('¡Código canjeado!'); location.hash = '#multimedia';
   },
   tipo(t) { buscarTipo = t.dataset.tipo; document.querySelectorAll('.chip2').forEach(c => c.classList.toggle('on', c === t)); $('#res').innerHTML = resultados($('#q').value, buscarTipo); loadCreatorSearch($('#q')?.value||''); },
-  async leer(t) { const id=Number(t.dataset.id);const {error}=await supabaseClient.from('notifications').update({leida:true}).eq('id',id).eq('user_id',currentUser.id);if(!error){const n=avisos.find(x=>x.id===id);if(n)n.leida=true;updateBellCount();} },
+  async leer(t) { const id=Number(t.dataset.id);const {error}=await supabaseClient.from('notifications').update({leida:true}).eq('id',id).eq('user_id',currentUser.id);if(!error){const n=avisos.find(x=>x.id===id);if(n)n.leida=true;t.querySelector('.ud')?.remove();updateBellCount();} },
   async leertodo() { const {error}=await supabaseClient.from('notifications').update({leida:true}).eq('user_id',currentUser.id).eq('leida',false);if(error)toast('No se pudieron marcar como leídas.');else{avisos.forEach(n=>n.leida=true);updateBellCount();render();} },
   avtipo(t) { avisosTipo = t.dataset.tipo; document.querySelectorAll('.chip2').forEach(c => c.classList.toggle('on', c === t)); $('#av-lista').innerHTML = listaAvisos(avisosTipo); },
   deseo(t) { const p = productos.find(x => x.id === t.dataset.id); if (!p) return; let d = J.get('deseos', []); const ya = d.some(x => x.id === p.id); d = ya ? d.filter(x => x.id !== p.id) : [...d, p]; J.set('deseos', d); t.classList.toggle('on', !ya); toast(ya ? 'Quitado de tu lista de deseos' : 'Guardado en tu lista de deseos'); },

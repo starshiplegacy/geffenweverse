@@ -54,6 +54,12 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
  background:var(--bg);border-top:1px solid var(--line);padding:9px 0 calc(9px + env(safe-area-inset-bottom,0px));z-index:5}
 .nav a{color:var(--mu)}.nav a.on{color:#22c55e}
 .nav .mid{border:1px solid #52525b;border-radius:50%;padding:6px;margin-top:-16px;background:var(--bg);color:var(--tx)}
+.home-wrap{min-height:100vh;display:flex;flex-direction:column;padding-bottom:90px}
+.home-empty{flex:1;padding:18px 12px}
+.welcome-notice{display:flex;align-items:flex-start;gap:12px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.welcome-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#22d3ee20;color:var(--ac);flex:none}
+.welcome-notice b{display:block;font-size:13px}
+.welcome-notice p{margin-top:5px;color:var(--mu);font-size:12px;line-height:1.5}
 
 /* ===== 3. MI PERFIL + MENÚ ===== */
 .cover{height:130px;background:#8fa5b1;margin:0 4px}
@@ -189,6 +195,13 @@ a.usr:hover{background:#ffffff0a}.faq details{border-bottom:1px solid var(--line
 .ga-field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;color:#3a444f}
 .ga-field input{width:100%;min-height:46px;padding:0 14px;border:1px solid #dfe3e8;border-radius:10px;background:#fbfcfd;font-family:inherit;font-size:14px;color:#14181d}
 .ga-field input:focus{outline:none;border-color:#1a5fb4;background:#fff;box-shadow:0 0 0 3px rgba(26,95,180,.12)}
+.ga-gender{border:0;padding:0;min-width:0}
+.ga-gender legend{font-size:12.5px;font-weight:700;margin-bottom:7px;color:#3a444f}
+.ga-gender-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ga-gender-option{min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 4px;border:1px solid #dfe3e8;border-radius:10px;background:#fbfcfd;color:#27313b;font-size:11px;font-weight:700;cursor:pointer}
+.ga-gender-option input{width:15px;height:15px;min-height:0;margin:0;accent-color:#1a5fb4}
+.ga-gender-option:has(input:checked){border-color:#1a5fb4;background:#eef5ff;box-shadow:0 0 0 2px rgba(26,95,180,.10)}
+.ga-gender-emoji{font-size:20px;line-height:1.2}
 .ga-primary{width:100%;min-height:48px;margin-top:8px;border:0;border-radius:999px;background:#1a5fb4;color:#fff;font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s}
 .ga-primary:hover{background:#154e94}.ga-primary:disabled{opacity:.65;cursor:wait}
 .ga-back{display:block;margin:16px auto 0;background:none;border:0;font-family:inherit;font-size:13px;font-weight:700;color:#6b7683;cursor:pointer;text-decoration:underline}
@@ -325,12 +338,13 @@ const Auth = {
   },
   async register(form) {
     const displayName=form.display_name.value.trim(),email=form.email.value.trim(),password=form.password.value,confirm=form.confirm_password.value;
-    if(!displayName||!email||!password) return toast('Completa todos los campos.');
+    const gender=form.elements.namedItem('gender')?.value;
+    if(!displayName||!email||!password||!gender) return toast('Completa todos los campos y selecciona tu género.');
     if(password.length<8) return toast('La contraseña debe tener al menos 8 caracteres.');
     if(password!==confirm) return toast('Las contraseñas no coinciden.');
     const submit=form.querySelector('[type=submit]'); submit.disabled=true; submit.textContent='Creando cuenta…';
     try {
-      const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{display_name:displayName},emailRedirectTo:this.redirectUrl()}});
+      const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{display_name:displayName,gender},emailRedirectTo:this.redirectUrl()}});
       if(error) throw error;
       if(data.session) await this.sync(data.session,'SIGNED_IN');
       else { toast('Cuenta creada. Revisa tu correo y confirma la dirección antes de iniciar sesión.'); location.hash='#login'; }
@@ -531,20 +545,13 @@ const row = (href, icon, bg, txt) => {
 const rowG = (href, icon, txt) => row(href, icon, '#5a5a5a', txt);
 
 const pages = {
-  inicio: () => `<div class="wrap">
-    <header class="hd"><span style="display:flex;align-items:center"><a class="cart" href="#pedidos" data-tip="STARSHIP-Shop" aria-label="STARSHIP-Shop">${I('cart')}</a><span class="logo">GEFFENWEVERSE</span></span><span class="ic"><span class="radio ${radioOn() ? 'on' : 'off'}" role="img" aria-label="Starship Listing Party: ${radioOn() ? 'activada' : 'apagada'}" title="Starship Listing Party: ${radioOn() ? 'activada' : 'apagada'}">${I('live')}</span><a href="#buscar" aria-label="Buscar">${I('search')}</a><a class="bell" href="#avisos" aria-label="Notificaciones">${I('bell')}${sinLeer() ? `<span class="dot">${sinLeer()}</span>` : ''}</a></span></header>
-    <nav class="tabs" aria-label="Secciones"><a href="#inicio">Inicio</a><a href="#siguiendo">Siguiendo</a><a href="#artistas">Artistas</a><a href="#comunidades">Comunidades</a><a href="#inicio" data-act="media">MULTIMEDIA</a></nav>
-    <section class="feat"><small>Artistas destacados</small><span class="av g1"></span><span class="av g2"></span><span class="av g3"></span>
-      <span style="margin-left:4px"><b style="font-size:12px">Descubre tus artistas</b><span class="mu" style="font-size:9px;margin:0">Novedades y comunidades</span></span></section>
-    <section class="card feed"><div class="top"><b>Feed de publicaciones</b><span class="pill">Comunidad</span></div>
-      <p class="yel">Publicaciones de artistas y Estrellas Creativas que sigues.</p>
-      <div class="photo" role="img" aria-label="Siete personas vestidas de negro sentadas a una mesa con velas"><u></u>
-        ${[8, 20, 33, 45, 57, 69, 82].map((l, i) => `<i style="left:${l}%;bottom:${[28, 32, 36, 39, 36, 32, 28][i]}%"></i>`).join('')}
-        <span class="chip">geffenweverse.com</span>${save}</div>
-      <div class="acts"><span>Me gusta · Comentar · Compartir</span>${I('bm')}</div></section>
-    <section class="card" id="sec-media"><b>Multimedia y descubrimiento</b><p class="mu" style="color:#60a5fa;margin:3px 0 10px">Videos verticales, clips musicales y contenido de la comunidad.</p>
-      <div class="vids"><div>${save}</div><div>${save}</div><div>${save}</div></div></section>
-    ${nav('inicio')}</div>`,
+  inicio: () => {
+    const esNuevo = currentUser?.created_at && (Date.now() - Date.parse(currentUser.created_at)) < 7 * 24 * 60 * 60 * 1000;
+    return `<div class="wrap home-wrap">
+      <header class="hd"><span style="display:flex;align-items:center"><a class="cart" href="#pedidos" data-tip="STARSHIP-Shop" aria-label="STARSHIP-Shop">${I('cart')}</a><span class="logo">GEFFENWEVERSE</span></span><span class="ic"><span class="radio ${radioOn() ? 'on' : 'off'}" role="img" aria-label="Starship Listing Party: ${radioOn() ? 'activada' : 'apagada'}" title="Starship Listing Party: ${radioOn() ? 'activada' : 'apagada'}">${I('live')}</span><a href="#buscar" aria-label="Buscar">${I('search')}</a><a class="bell" href="#avisos" aria-label="Notificaciones">${I('bell')}${sinLeer() ? `<span class="dot">${sinLeer()}</span>` : ''}</a></span></header>
+      <main class="home-empty">${esNuevo ? `<section class="welcome-notice" role="status"><span class="welcome-icon">${I('bell')}</span><div><b>¡Te damos la bienvenida a GeffenWeverse!</b><p>Tu espacio ya está listo. Descubre artistas, comunidades y novedades a tu propio ritmo.</p></div></section>` : ''}</main>
+      ${nav('inicio')}</div>`;
+  },
 
   perfil: () => `<div class="wrap">
     <header class="bar"><h1 style="font-size:18px">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}<span class="mu" style="font-weight:400;margin:2px 0 0">Perfil de GeffenWeverse</span></h1><a href="#menu" class="mbtn" aria-label="Abrir menú">${I('menu')}</a></header>
@@ -688,6 +695,11 @@ function auth(modo) {
   let form='';
   if(reg) form=`<form class="ga-fields" data-auth-form="registro">
     <div class="ga-field"><label for="ga-reg-name">Nombre</label><input id="ga-reg-name" name="display_name" autocomplete="name" maxlength="80" placeholder="Tu nombre" required></div>
+    <fieldset class="ga-field ga-gender"><legend>Género</legend><div class="ga-gender-options">
+      <label class="ga-gender-option"><input type="radio" name="gender" value="mujer" required><span class="ga-gender-emoji">♀️</span><span>Mujer</span></label>
+      <label class="ga-gender-option"><input type="radio" name="gender" value="hombre" required><span class="ga-gender-emoji">♂️</span><span>Hombre</span></label>
+      <label class="ga-gender-option"><input type="radio" name="gender" value="no_binario" required><span class="ga-gender-emoji">💮</span><span>No binarie</span></label>
+    </div></fieldset>
     <div class="ga-field"><label for="ga-reg-email">Correo electrónico</label><input id="ga-reg-email" name="email" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com" required></div>
     <div class="ga-field"><label for="ga-reg-pass">Contraseña</label><input id="ga-reg-pass" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="Mínimo 8 caracteres" required></div>
     <div class="ga-field"><label for="ga-reg-confirm">Confirmar contraseña</label><input id="ga-reg-confirm" name="confirm_password" type="password" autocomplete="new-password" minlength="8" placeholder="Repite la contraseña" required></div>

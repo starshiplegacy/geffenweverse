@@ -407,7 +407,7 @@ const Auth = {
     return error?.message||'No se pudo completar la operación. Inténtalo de nuevo.';
   },
   async sync(session,event='INITIAL_SESSION') {
-    currentUser=session?.user||null; currentProfile=null; currentBadges=[];
+    currentUser=session?.user||null; currentProfile=null; currentBadges=[]; isGeffenAdmin=false;
     if(currentUser) {
       const {data,error}=await supabaseClient.from('profiles').select('id, username, display_name, bio, avatar_url, banner_url, rol, created_at').eq('id',currentUser.id).maybeSingle();
       if(error) console.error('No se pudo cargar el perfil:',error);

@@ -699,9 +699,10 @@ const rowG = (href, icon, txt) => row(href, icon, '#5a5a5a', txt);
 
 const pages = {
   admin: () => adminPage(),
+  feed: () => feedPage(),
   inicio: () => `<div class="wrap">
     <header class="hd"><span style="display:flex;align-items:center"><a class="cart" href="#pedidos" data-tip="Geffen Shop" aria-label="Geffen Shop">${I('cart')}</a><span class="logo">GEFFENWEVERSE</span></span><span class="ic"><div class="radio-wrap"><button class="radio ${radioOn() ? 'on' : 'off'}" type="button" data-radio-panel aria-expanded="false" aria-label="Abrir controles de GEFFEN RADIO" title="GEFFEN RADIO">${I('live')}</button><div class="radio-panel" data-radio-panel-content hidden><div class="radio-station" data-radio-station>GEFFEN RADIO · Preparando emisoras…</div><div class="radio-actions"><button type="button" data-radio-prev aria-label="Emisora anterior">⏪</button><button type="button" data-radio-volume aria-label="Volumen">🎚️</button><button type="button" data-radio-next aria-label="Siguiente emisora">⏭️</button></div><div class="radio-volume" data-radio-volume-panel hidden><input type="range" min="0" max="100" value="35" data-radio-volume-range aria-label="Volumen de radio"><div class="radio-source">Emisoras internacionales · Radio Browser</div></div></div></div><a href="#buscar" aria-label="Buscar">${I('search')}</a><a class="bell" href="#avisos" aria-label="Notificaciones">${I('bell')}${sinLeer() ? `<span class="dot">${sinLeer()}</span>` : ''}</a></span></header>
-    <nav class="tabs" aria-label="Secciones"><a href="#inicio">Inicio</a><a href="#siguiendo">Siguiendo</a><a href="#artistas">Artistas</a><a href="#comunidades">Comunidades</a><a href="#inicio" data-act="media">MULTIMEDIA</a></nav>
+    <nav class="tabs" aria-label="Secciones"><a href="#inicio">Inicio</a><a href="#feed">Publicaciones</a><a href="#siguiendo">Siguiendo</a><a href="#artistas">Artistas</a><a href="#comunidades">Comunidades</a><a href="#inicio" data-act="media">MULTIMEDIA</a></nav>
     <section class="feat"><small>Artistas destacados</small><span class="av g1"></span><span class="av g2"></span><span class="av g3"></span>
       <span style="margin-left:4px"><b style="font-size:12px">Descubre tus artistas</b><span class="mu" style="font-size:9px;margin:0">Novedades y comunidades</span></span></section>
     <section class="card welcome-notice" role="status"><span class="welcome-icon">${I('bell')}</span><div><b>¡Te damos la bienvenida a GeffenWeverse!</b><p>Tu espacio ya está listo. Descubre artistas, comunidades y novedades a tu propio ritmo.</p><p class="mu" style="margin-top:7px">El acceso a tus notificaciones sigue disponible en la campana superior.</p></div></section>
@@ -938,6 +939,30 @@ function auth(modo) {
 /* ===== 9. ROUTER ===== */
 
 /* ===== Administración de insignias y actividad ===== */
+
+function feedPage() {
+  return `<div class="wrap"><header class="bar"><a href="#inicio" data-back aria-label="Volver">←</a><h1>Publicaciones<span class="mu" style="font-weight:400;font-size:12px;margin:2px 0 0">Comunidad GeffenWeverse</span></h1></header><section id="gw-community-feed"><p class="mu" style="text-align:center;padding:22px">Cargando publicaciones…</p></section></div>`;
+}
+async function loadCommunityFeed() {
+  const host=document.getElementById('gw-community-feed'); if(!host)return;
+  const {data:posts,error}=await supabaseClient.from('posts').select('id,author_id,tipo,texto,media_url,created_at').order('created_at',{ascending:false}).limit(40);
+  if(error){host.innerHTML='<section class="card"><p class="mu">No se pudo cargar el feed.</p></section>';return;}
+  if(!posts?.length){host.innerHTML='<section class="card"><p class="mu" style="text-align:center;padding:20px">Todavía no hay publicaciones de la comunidad.</p></section>';return;}
+  const postIds=posts.map(p=>p.id), authorIds=[...new Set(posts.map(p=>p.author_id))];
+  const {data:comments}=await supabaseClient.from('comments').select('id,post_id,author_id,texto,created_at').in('post_id',postIds).order('created_at',{ascending:true});
+  const allIds=[...new Set([...authorIds,...(comments||[]).map(c=>c.author_id)])];
+  const [{data:profiles},{data:badges}]=await Promise.all([
+    supabaseClient.from('profiles').select('id,username,display_name,avatar_url,rol').in('id',allIds),
+    supabaseClient.from('user_badges').select('user_id,badge_key').in('user_id',allIds)
+  ]);
+  const people=new Map((profiles||[]).map(p=>[p.id,p]));
+  const badgeMap=new Map();
+  (badges||[]).forEach(b=>{if(!badgeMap.has(b.user_id))badgeMap.set(b.user_id,[]);badgeMap.get(b.user_id).push(b.badge_key);});
+  host.innerHTML=posts.map(p=>{
+    const person=people.get(p.author_id)||{}, rows=(comments||[]).filter(c=>c.post_id===p.id);
+    return `<article class="post"><div style="flex:1"><div class="h"><strong>${esc(person.display_name||person.username||'Miembro')}</strong> ${insigniasMarkup(badgeMap.get(p.author_id)||[])} <span class="mu">@${esc(person.username||'usuario')} · ${new Date(p.created_at).toLocaleDateString('es')}</span></div><p>${esc(p.texto||'')}</p>${p.media_url?`<img src="${esc(p.media_url)}" alt="Contenido de la publicación" style="max-width:100%;border-radius:12px;margin-top:8px">`:''}<div class="a"><span>${I('cmt')}${rows.length} comentarios</span></div>${rows.length?`<div class="gw-post-comments">${rows.map(c=>{const cp=people.get(c.author_id)||{};return `<div class="gw-admin-user"><div class="gw-admin-user-main"><b>${esc(cp.display_name||cp.username||'Miembro')} ${insigniasMarkup(badgeMap.get(c.author_id)||[])}</b><small>${esc(c.texto)} · ${new Date(c.created_at).toLocaleDateString('es')}</small></div></div>`;}).join('')}</div>`:''}</div></article>`;
+  }).join('');
+}
 function adminPage() {
   if (!isGeffenAdmin) return `<div class="wrap"><section class="card"><b>Acceso restringido</b><p class="mu">Esta sección solo está disponible para administradores autorizados.</p></section></div>`;
   return `<div class="gw-admin-wrap">
@@ -993,6 +1018,7 @@ function render() {
   $('#app').innerHTML = page();
   applyPrefs();
   if (r === 'admin') adminLoadUsers();
+  if (r === 'feed') loadCommunityFeed();
   if (r === 'perfil') loadOwnProfilePosts();
   if (r === 'buscar') { const q = $('#q'); if (q) q.focus(); }
   window.scrollTo(0, 0);

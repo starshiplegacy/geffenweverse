@@ -165,6 +165,42 @@ a.usr:hover{background:#ffffff0a}.faq details{border-bottom:1px solid var(--line
 .auth-link{display:inline-block;color:#111;text-decoration:underline;font-weight:700;margin-top:14px}
 .auth-note{font-size:12px;line-height:1.5;color:#6b7280;margin-top:12px}
 .auth-loading{max-width:420px;margin:80px auto;text-align:center;padding:30px;color:var(--mu)}
+
+/* ===== GEFFEN ACCOUNT: diseño original recuperado ===== */
+.ga-page{background:#f5f6f8;color:#14181d;min-height:100vh;display:flex;flex-direction:column;font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif}
+.ga-main{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 16px}
+.ga-card{width:100%;max-width:680px;background:#fff;border-radius:18px;box-shadow:0 6px 28px rgba(20,24,29,.09);padding:44px 48px 40px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center}
+.ga-brand{font-size:21px;font-weight:700;letter-spacing:-.4px;margin-bottom:34px}
+.ga-brand .ga-mark{color:#00c3d0}.ga-brand .ga-rest{color:#14181d}
+.ga-headline{font-size:24px;line-height:1.32;font-weight:700;letter-spacing:-.3px}
+.ga-actions{display:flex;flex-direction:column;gap:12px}
+.ga-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:46px;padding:0 18px;border:1px solid #dfe3e8;border-radius:999px;background:#fff;color:#14181d;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.ga-btn:hover{background:#f7f9fb;border-color:#c9d0d8}.ga-btn:active,.ga-primary:active{transform:scale(.99)}
+.ga-btn svg{flex:0 0 18px}
+.ga-card-foot{grid-column:1/-1;text-align:center;font-size:13px;color:#6b7683;padding-top:8px}
+.ga-card-foot a{background:none;border:0;font:inherit;font-weight:700;color:#14181d;text-decoration:underline;cursor:pointer}
+.ga-form{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center}
+.ga-form[hidden],.ga-welcome[hidden]{display:none!important}
+.ga-form h2{font-size:21px;font-weight:700;letter-spacing:-.3px;margin-bottom:6px}
+.ga-sub{font-size:13px;color:#6b7683;margin-bottom:22px;line-height:1.5}
+.ga-fields{min-width:0}
+.ga-field{margin-bottom:16px}
+.ga-field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;color:#3a444f}
+.ga-field input{width:100%;min-height:46px;padding:0 14px;border:1px solid #dfe3e8;border-radius:10px;background:#fbfcfd;font-family:inherit;font-size:14px;color:#14181d}
+.ga-field input:focus{outline:none;border-color:#1a5fb4;background:#fff;box-shadow:0 0 0 3px rgba(26,95,180,.12)}
+.ga-primary{width:100%;min-height:48px;margin-top:8px;border:0;border-radius:999px;background:#1a5fb4;color:#fff;font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s}
+.ga-primary:hover{background:#154e94}.ga-primary:disabled{opacity:.65;cursor:wait}
+.ga-back{display:block;margin:16px auto 0;background:none;border:0;font-family:inherit;font-size:13px;font-weight:700;color:#6b7683;cursor:pointer;text-decoration:underline}
+.ga-link{display:inline-block;color:#14181d;text-decoration:underline;font-weight:700;margin-top:14px;font-size:13px}
+.ga-note{font-size:12px;line-height:1.5;color:#6b7683;margin-top:12px}
+.ga-alert{margin-top:14px;padding:11px 14px;border-radius:10px;font-size:12.5px;line-height:1.5;background:#edf7ee;color:#256b2c;border:1px solid #c6e6c9}
+.ga-footer{border-top:1px solid #dfe3e8;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12.5px;color:#6b7683}
+.ga-footer nav{display:flex;gap:20px;flex-wrap:wrap}
+.ga-footer nav a{color:#6b7683;text-decoration:none;font-weight:600}
+.ga-footer nav a:hover{color:#14181d;text-decoration:underline}
+.ga-language{display:flex;align-items:center;gap:7px;border:1px solid #dfe3e8;border-radius:999px;padding:7px 14px;background:#fff;font-family:inherit;font-size:12.5px;font-weight:600;color:#14181d}
+@media(max-width:640px){.ga-card{grid-template-columns:1fr;gap:26px;padding:30px 22px 26px;border-radius:14px}.ga-brand{margin-bottom:20px}.ga-headline{font-size:20px}.ga-form{grid-template-columns:1fr;gap:18px}.ga-footer{justify-content:center;text-align:center}.ga-footer nav{justify-content:center;gap:12px 18px}}
+
 </style>
 </head>
 <body>
@@ -645,27 +681,52 @@ function wiki(slug) {
 
 function auth(modo) {
   const reg=modo==='registro',recovery=modo==='recuperar',reset=modo==='restablecer';
-  const title=reg?'Crea tu cuenta GeffenWeverse':recovery?'Recupera tu cuenta':reset?'Crea una nueva contraseña':'Inicia sesión en GeffenWeverse';
+  const login=modo==='login';
+  const brand='<div class="ga-brand"><span class="ga-mark">geffen</span> <span class="ga-rest">account</span></div>';
+  const back='<button type="button" class="ga-back" data-ga-view="welcome">Volver</button>';
   let form='';
-  if(reg) form=`<form class="auth-form" data-auth-form="registro">
-    <label>Nombre para mostrar<input name="display_name" autocomplete="name" maxlength="80" required></label>
-    <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
-    <label>Contraseña<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
-    <label>Confirmar contraseña<input name="confirm_password" type="password" autocomplete="new-password" minlength="8" required></label>
-    <button class="auth-submit" type="submit">Crear cuenta</button>
-    <p class="auth-note">Tu cuenta comienza como Astroturista. El rol Estrella Creadora solo puede asignarlo el equipo administrativo.</p></form>`;
-  else if(recovery) form=`<form class="auth-form" data-auth-form="recuperar"><label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label><button class="auth-submit" type="submit">Enviar instrucciones</button></form>`;
-  else if(reset) form=`<form class="auth-form" data-auth-form="restablecer"><label>Nueva contraseña<input name="password" type="password" autocomplete="new-password" minlength="8" required></label><label>Confirmar contraseña<input name="confirm_password" type="password" autocomplete="new-password" minlength="8" required></label><button class="auth-submit" type="submit">Guardar contraseña</button></form>`;
-  else form=`<form class="auth-form" data-auth-form="login"><label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label><label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label><button class="auth-submit" type="submit">Iniciar sesión</button><a class="auth-link" href="#recuperar">¿Olvidaste tu contraseña?</a></form>`;
-  const back=reg||recovery||reset?'#login':'#inicio';
-  return `<div class="lt"><main style="padding:16px 12px"><div class="lcard"><a class="bk" href="${back}" data-back aria-label="Volver">${I('back')}</a>
-    <span class="auth-brand">GEFFENWEVERSE account</span><h1>${title}</h1>
-    <p class="auth-note">${reg?'Regístrate con tu correo electrónico para acceder a los servicios de GeffenWeverse.':recovery?'Te enviaremos un enlace para recuperar el acceso a tu cuenta.':reset?'Elige una contraseña segura de al menos 8 caracteres.':'Accede con el correo electrónico y la contraseña de tu cuenta.'}</p>
-    ${form}<p class="sw2">${reg?'¿Ya tienes una cuenta? <a href="#login">Iniciar sesión</a>':recovery||reset?'<a href="#login">Volver al inicio de sesión</a>':'¿Es tu primera vez? <a href="#registro">Crear cuenta</a>'}</p>
-  </div></main><footer class="foot"><nav><a href="#login">Términos y condiciones</a><a href="#login"><b>Política de privacidad</b></a><a href="#login">Política de cookies</a></nav>
-  <label class="sel">${I('globe', '')}<select aria-label="Idioma"><option selected>&nbsp;español (latino)</option><option>&nbsp;English</option><option>&nbsp;한국어</option></select>${I('down')}</label></footer></div>`;
+  if(reg) form=`<form class="ga-fields" data-auth-form="registro">
+    <div class="ga-field"><label for="ga-reg-name">Nombre</label><input id="ga-reg-name" name="display_name" autocomplete="name" maxlength="80" placeholder="Tu nombre" required></div>
+    <div class="ga-field"><label for="ga-reg-email">Correo electrónico</label><input id="ga-reg-email" name="email" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com" required></div>
+    <div class="ga-field"><label for="ga-reg-pass">Contraseña</label><input id="ga-reg-pass" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="Mínimo 8 caracteres" required></div>
+    <div class="ga-field"><label for="ga-reg-confirm">Confirmar contraseña</label><input id="ga-reg-confirm" name="confirm_password" type="password" autocomplete="new-password" minlength="8" placeholder="Repite la contraseña" required></div>
+    <button class="ga-primary" type="submit">Crear cuenta</button>
+    <p class="ga-note">Tu cuenta comienza como Astroturista. El rol Estrella Creadora solo puede asignarlo el equipo administrativo.</p>
+  </form>`;
+  else if(recovery) form=`<form class="ga-fields" data-auth-form="recuperar">
+    <div class="ga-field"><label for="ga-recover-email">Correo electrónico</label><input id="ga-recover-email" name="email" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com" required></div>
+    <button class="ga-primary" type="submit">Enviar instrucciones</button>
+  </form>`;
+  else if(reset) form=`<form class="ga-fields" data-auth-form="restablecer">
+    <div class="ga-field"><label for="ga-reset-pass">Nueva contraseña</label><input id="ga-reset-pass" name="password" type="password" autocomplete="new-password" minlength="8" required></div>
+    <div class="ga-field"><label for="ga-reset-confirm">Confirmar contraseña</label><input id="ga-reset-confirm" name="confirm_password" type="password" autocomplete="new-password" minlength="8" required></div>
+    <button class="ga-primary" type="submit">Guardar contraseña</button>
+  </form>`;
+  else form=`<form class="ga-fields" data-auth-form="login">
+    <div class="ga-field"><label for="ga-login-email">Correo electrónico</label><input id="ga-login-email" name="email" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com" required></div>
+    <div class="ga-field"><label for="ga-login-pass">Contraseña</label><input id="ga-login-pass" name="password" type="password" autocomplete="current-password" placeholder="Tu contraseña" required></div>
+    <button class="ga-primary" type="submit">Iniciar sesión</button>
+    <a class="ga-link" href="#recuperar">¿Olvidaste tu contraseña?</a>
+  </form>`;
+  const title=reg?'Registro de cuenta':recovery?'Recupera tu cuenta':reset?'Crea una nueva contraseña':'Iniciar sesión';
+  const intro=reg?'¡Disfruta todos los servicios de Geffen con un solo registro!':recovery?'Te enviaremos un enlace para recuperar el acceso a tu cuenta.':reset?'Elige una contraseña segura de al menos 8 caracteres.':'Introduce tu correo y tu contraseña para entrar en tu cuenta.';
+  const welcome=login?`<section class="ga-welcome" id="ga-welcome">
+    <div><div class="ga-brand"><span class="ga-mark">geffen</span> <span class="ga-rest">account</span></div><h1 class="ga-headline">¡Inicia sesión en Geffen como te resulte más cómodo!</h1></div>
+    <div class="ga-actions">
+      <button class="ga-btn" type="button" data-ga-view="email"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>Continuar con email</button>
+      <button class="ga-btn" type="button" data-ga-route="registro"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M19 8v6M16 11h6"/></svg>Registro de cuenta</button>
+    </div>
+    <div class="ga-card-foot">¿Es tu primera vez en Geffen? <a href="#registro">Registro de cuenta</a></div>
+  </section>`: '';
+  const isWelcome=login;
+  const left=(reg||recovery||reset)?`<div><div class="ga-brand"><span class="ga-mark">geffen</span> <span class="ga-rest">account</span></div><h1 class="ga-headline">${title}</h1><p class="ga-sub" style="margin-top:12px">${intro}</p></div>`:`<div><div class="ga-brand"><span class="ga-mark">geffen</span> <span class="ga-rest">account</span></div><h1 class="ga-headline">${title}</h1><p class="ga-sub" style="margin-top:12px">${intro}</p></div>`;
+  const formSection=`<section class="ga-form" id="ga-form" ${isWelcome?'hidden':''}>
+    ${left}
+    <div>${form}${back}</div>
+  </section>`;
+  const footer=`<footer class="ga-footer"><nav><a href="#login">Términos y condiciones</a><a href="#login" style="color:#14181d;font-weight:700">Política de privacidad</a><a href="#login">Política de cookies</a><a href="#login">Anuncios</a></nav><span class="ga-language">◎ &nbsp; Español (latino) &nbsp;⌄</span></footer>`;
+  return `<div class="ga-page"><main class="ga-main"><div class="ga-card">${welcome}${formSection}</div></main>${footer}</div>`;
 }
-
 /* ===== 9. ROUTER ===== */
 function render() {
   const r = location.hash.slice(1) || 'inicio';
@@ -746,6 +807,12 @@ document.addEventListener('submit', e => {
   const form=e.target.closest('[data-auth-form]'); if(!form)return; e.preventDefault();
   const mode=form.dataset.authForm;
   if(mode==='login') Auth.login(form); else if(mode==='registro') Auth.register(form); else if(mode==='recuperar') Auth.recover(form); else if(mode==='restablecer') Auth.updatePassword(form);
+});
+document.addEventListener('click', e => {
+  const view=e.target.closest('[data-ga-view]');
+  if(view){e.preventDefault();const welcome=$('#ga-welcome'),form=$('#ga-form');if(welcome)welcome.hidden=view.dataset.gaView!=='welcome';if(form)form.hidden=view.dataset.gaView!=='email';if(view.dataset.gaView==='email'){const input=$('#ga-login-email');if(input)input.focus();}return;}
+  const route=e.target.closest('[data-ga-route]');
+  if(route){e.preventDefault();location.hash='#'+route.dataset.gaRoute;return;}
 });
 document.addEventListener('click', e => {
   /* FAQ tipo acordeón: al abrir una pregunta se cierra la anterior; tocarla de nuevo la cierra */

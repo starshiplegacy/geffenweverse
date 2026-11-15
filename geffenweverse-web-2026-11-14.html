@@ -215,6 +215,20 @@ a.usr:hover{background:#ffffff0a}.faq details{border-bottom:1px solid var(--line
 .ga-language{display:flex;align-items:center;gap:7px;border:1px solid #dfe3e8;border-radius:999px;padding:7px 14px;background:#fff;font-family:inherit;font-size:12.5px;font-weight:600;color:#14181d}
 @media(max-width:640px){.ga-card{grid-template-columns:1fr;gap:26px;padding:30px 22px 26px;border-radius:14px}.ga-brand{margin-bottom:20px}.ga-headline{font-size:20px}.ga-form{grid-template-columns:1fr;gap:18px}.ga-welcome{grid-template-columns:1fr;gap:26px}.ga-footer{justify-content:center;text-align:center}.ga-footer nav{justify-content:center;gap:12px 18px}}
 
+
+/* GEFFEN RADIO */
+.radio-wrap{position:relative;display:flex;align-items:center}
+button.radio{display:grid;place-items:center;color:var(--tx);padding:3px;border-radius:8px}
+button.radio.on{color:#22c55e}button.radio.off{color:#3b82f6}
+.radio-panel{position:absolute;z-index:30;right:-52px;top:34px;width:230px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--card);box-shadow:0 12px 32px #0007}
+.radio-panel[hidden],.radio-volume[hidden]{display:none}
+.radio-station{font-size:11px;color:var(--mu);line-height:1.4;min-height:30px;margin-bottom:10px}
+.radio-actions{display:flex;align-items:center;justify-content:space-around;gap:8px}
+.radio-actions button{font-size:20px;min-width:42px;min-height:38px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.radio-volume{padding-top:10px}
+.radio-volume input{width:100%;accent-color:var(--ac)}
+.radio-source{font-size:9px;color:var(--mu);margin-top:8px}
+
 </style>
 </head>
 <body>
@@ -315,6 +329,7 @@ const Auth = {
       }
     }
     authReady=true;
+    if(currentUser && radioOn()) radioLoadCatalog(); else if(!currentUser) { radioAudio.pause(); radioAudio.removeAttribute('src'); radioAudio.load(); }
     if(event==='PASSWORD_RECOVERY') { if(location.hash!=='#restablecer') location.hash='#restablecer'; }
     else if(event==='SIGNED_OUT') { if(location.hash!=='#login'&&location.hash!=='#registro') location.hash='#login'; }
     else if(currentUser&&['login','registro','recuperar','restablecer'].includes(location.hash.slice(1))) location.hash='#inicio';
@@ -426,8 +441,81 @@ const tiendaTop = act => `<header class="sbar"><div><a class="l" href="#menu" da
     <div><button data-act="salir" style="color:#4b5563">Cerrar sesión</button><a href="#faq">Ayuda</a></div></header>
     <nav class="stabs" aria-label="Tienda"><a href="#pedidos" data-replace class="${act === 'pedidos' ? 'on' : ''}">Mis Pedidos</a><a href="#comprar" data-replace class="${act === 'comprar' ? 'on' : ''}">Comprar</a></nav>`;
 
-/* Starship Listing Party (radio FM): activada por defecto. Verde = activada, azul = apagada */
+/* GEFFEN RADIO: emisoras internacionales K-pop, pop y pop latino. Audio directo desde cada emisora. */
 const radioOn = () => store.get('gw-radio') !== 'false';
+const radioAudio = new Audio();
+radioAudio.preload = 'none';
+radioAudio.volume = 0.35;
+let radioStations = [], radioIndex = -1, radioLoading = false, radioLoaded = false;
+const radioTags = ['k-pop', 'pop', 'latin pop'];
+const radioLabel = s => [s?.name, s?.country].filter(Boolean).join(' · ') || 'GEFFEN RADIO';
+function radioStatus(message) {
+  document.querySelectorAll('[data-radio-station]').forEach(el => el.textContent = message);
+}
+function radioShuffle(items) {
+  const a = [...items];
+  for (let i=a.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+async function radioLoadCatalog() {
+  if (!radioOn() || radioLoaded || radioLoading) return;
+  radioLoading = true;
+  radioStatus('Buscando emisoras internacionales…');
+  try {
+    const results = await Promise.all(radioTags.map(async tag => {
+      const url = 'https://spinnradio.com/api/stations?tag='+encodeURIComponent(tag)+'&limit=35&order=clickcount&reverse=true&hidebroken=true';
+      const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      if (!response.ok) throw new Error('No se pudo consultar el catálogo de radio.');
+      const data = await response.json();
+      return Array.isArray(data) ? data : (data.stations || data.items || []);
+    }));
+    const unique = new Map();
+    results.flat().forEach(station => {
+      const stream = station.url_resolved || station.url;
+      const id = station.stationuuid || station.id;
+      if (!id || !stream || !/^https:\/\//i.test(stream)) return;
+      if (!unique.has(id)) unique.set(id, { id, name: station.name || 'Emisora internacional', country: station.country || '', stream, tags: station.tags || '', homepage: station.homepage || '' });
+    });
+    radioStations = radioShuffle([...unique.values()]);
+    radioLoaded = true;
+    if (!radioStations.length) throw new Error('No encontramos streams HTTPS compatibles.');
+    radioIndex = 0;
+    radioSetStation(radioIndex, true);
+  } catch (error) {
+    console.error('GEFFEN RADIO:', error);
+    radioStatus('No se pudo cargar la radio. Inténtalo de nuevo más tarde.');
+  } finally { radioLoading = false; }
+}
+function radioSetStation(index, autoplay=true) {
+  if (!radioStations.length || !radioOn()) return;
+  radioIndex = (index + radioStations.length) % radioStations.length;
+  const station = radioStations[radioIndex];
+  radioAudio.pause();
+  radioAudio.src = station.stream;
+  radioAudio.load();
+  radioStatus('GEFFEN RADIO · '+radioLabel(station));
+  if (autoplay) {
+    const attempt = radioAudio.play();
+    if (attempt && attempt.catch) attempt.catch(() => radioStatus('GEFFEN RADIO · Toca la pantalla para iniciar · '+radioLabel(station)));
+  }
+}
+function radioStep(direction) {
+  if (!radioOn()) { radioStatus('Activa GEFFEN RADIO desde Ajustes.'); return; }
+  if (!radioLoaded) { radioLoadCatalog(); return; }
+  radioSetStation(radioIndex + direction, true);
+}
+function radioEnable() {
+  if (radioOn()) radioLoadCatalog();
+  else { radioAudio.pause(); radioAudio.removeAttribute('src'); radioAudio.load(); radioStatus('GEFFEN RADIO desactivada desde Ajustes.'); }
+}
+radioAudio.addEventListener('error', () => radioStatus('Esta emisora no está disponible. Prueba con ⏭️.'));
+radioAudio.addEventListener('playing', () => radioStatus('EN VIVO · '+radioLabel(radioStations[radioIndex])));
+radioAudio.addEventListener('pause', () => { if (radioOn() && radioStations[radioIndex]) radioStatus('EN PAUSA · '+radioLabel(radioStations[radioIndex])); });
+/* El navegador puede bloquear el autoplay audible; el primer gesto del usuario lo desbloquea. */
+document.addEventListener('pointerdown', () => {
+  if (!radioOn() || !radioAudio.src || !radioAudio.paused) return;
+  const p = radioAudio.play(); if (p && p.catch) p.catch(() => {});
+}, true);
 
 /* Publicaciones buscables (conecta tu backend): { autor, id, texto, href } */
 const publicaciones = [{ autor: 'Profile Name', id: 'username', texto: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Hic nihil fuit, quod quaereremus.', href: '#perfil' }];
@@ -548,7 +636,7 @@ const pages = {
   inicio: () => {
     const esNuevo = currentUser?.created_at && (Date.now() - Date.parse(currentUser.created_at)) < 7 * 24 * 60 * 60 * 1000;
     return `<div class="wrap home-wrap">
-      <header class="hd"><span style="display:flex;align-items:center"><a class="cart" href="#pedidos" data-tip="STARSHIP-Shop" aria-label="STARSHIP-Shop">${I('cart')}</a><span class="logo">GEFFENWEVERSE</span></span><span class="ic"><span class="radio ${radioOn() ? 'on' : 'off'}" role="img" aria-label="Starship Listing Party: ${radioOn() ? 'activada' : 'apagada'}" title="Starship Listing Party: ${radioOn() ? 'activada' : 'apagada'}">${I('live')}</span><a href="#buscar" aria-label="Buscar">${I('search')}</a><a class="bell" href="#avisos" aria-label="Notificaciones">${I('bell')}${sinLeer() ? `<span class="dot">${sinLeer()}</span>` : ''}</a></span></header>
+      <header class="hd"><span style="display:flex;align-items:center"><a class="cart" href="#pedidos" data-tip="STARSHIP-Shop" aria-label="STARSHIP-Shop">${I('cart')}</a><span class="logo">GEFFENWEVERSE</span></span><span class="ic"><div class="radio-wrap"><button class="radio ${radioOn() ? 'on' : 'off'}" type="button" data-radio-panel aria-expanded="false" aria-label="Abrir controles de GEFFEN RADIO" title="GEFFEN RADIO">${I('live')}</button><div class="radio-panel" data-radio-panel-content hidden><div class="radio-station" data-radio-station>GEFFEN RADIO · Preparando emisoras…</div><div class="radio-actions"><button type="button" data-radio-prev aria-label="Emisora anterior">⏪</button><button type="button" data-radio-volume aria-label="Volumen">🎚️</button><button type="button" data-radio-next aria-label="Siguiente emisora">⏭️</button></div><div class="radio-volume" data-radio-volume-panel hidden><input type="range" min="0" max="100" value="35" data-radio-volume-range aria-label="Volumen de radio"><div class="radio-source">Emisoras internacionales · Radio Browser</div></div></div></div><a href="#buscar" aria-label="Buscar">${I('search')}</a><a class="bell" href="#avisos" aria-label="Notificaciones">${I('bell')}${sinLeer() ? `<span class="dot">${sinLeer()}</span>` : ''}</a></span></header>
       <main class="home-empty">${esNuevo ? `<section class="welcome-notice" role="status"><span class="welcome-icon">${I('bell')}</span><div><b>¡Te damos la bienvenida a GeffenWeverse!</b><p>Tu espacio ya está listo. Descubre artistas, comunidades y novedades a tu propio ritmo.</p></div></section>` : ''}</main>
       ${nav('inicio')}</div>`;
   },
@@ -851,6 +939,31 @@ document.addEventListener('click', e => {
     document.querySelectorAll('[data-theme-opt]').forEach(x => x.setAttribute('aria-checked', String(x === t)));
   } else if (t.dataset.auth) Auth.start(location.hash.slice(1), t.dataset.auth);
   else window.scrollTo({ top: 0, behavior: 'auto' }); /* sube de golpe */
+});
+
+/* Controles GEFFEN RADIO: el icono solo abre/cierra el panel; apagar está reservado a Ajustes. */
+document.addEventListener('click', e => {
+  const panelButton = e.target.closest('[data-radio-panel]');
+  if (panelButton) {
+    const panel = document.querySelector('[data-radio-panel-content]');
+    if (panel) { panel.hidden = !panel.hidden; panelButton.setAttribute('aria-expanded', String(!panel.hidden)); }
+    if (radioOn() && !radioLoaded) radioLoadCatalog();
+    return;
+  }
+  if (e.target.closest('[data-radio-prev]')) { radioStep(-1); return; }
+  if (e.target.closest('[data-radio-next]')) { radioStep(1); return; }
+  if (e.target.closest('[data-radio-volume]')) {
+    const panel = document.querySelector('[data-radio-volume-panel]');
+    if (panel) panel.hidden = !panel.hidden;
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.matches('[data-radio-volume-range]')) radioAudio.volume = Number(e.target.value) / 100;
+});
+/* El interruptor de radio de Ajustes es el único que puede desactivarla. */
+document.addEventListener('click', e => {
+  const toggle = e.target.closest('[data-switch][data-pref="radio"]');
+  if (toggle) setTimeout(radioEnable, 0);
 });
 </script>
 </body>

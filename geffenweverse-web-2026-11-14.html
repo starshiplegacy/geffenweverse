@@ -312,11 +312,14 @@ button.radio.on{color:#22c55e}button.radio.off{color:#3b82f6}
 .gw-profile-role-card div{display:flex;flex-direction:column;gap:4px}
 .gw-profile-role-card b{font-size:11px}.gw-profile-role-card strong{font-size:13px}.gw-profile-role-card small{font-size:10px;line-height:1.45;color:var(--mu)}
 
-\n.gw-username-field{display:flex;align-items:center;gap:8px}
+
+.gw-username-field{display:flex;align-items:center;gap:8px}
 .gw-username-field>span{font-weight:800;color:var(--mu);font-size:15px}
-.gw-username-field input{flex:1;min-width:0}\n.gw-comment-form{display:flex;gap:8px;margin-top:12px}
+.gw-username-field input{flex:1;min-width:0}
+.gw-comment-form{display:flex;gap:8px;margin-top:12px}
 .gw-comment-form input{flex:1;min-width:0}.gw-comment-form button{border-radius:999px;padding:9px 14px;background:var(--ac);color:#061014;font-weight:800}
-.gw-mention{color:var(--ac);font-weight:800}\n</style>
+.gw-mention{color:var(--ac);font-weight:800}
+</style>
 
 <style id="gw-responsive-system">
 /* ===== GEFFENWEVERSE RESPONSIVE SYSTEM ===== */
@@ -1080,7 +1083,8 @@ async function loadCommunityFeed() {
     return `<article class="post"><div style="flex:1"><div class="h"><strong>${esc(person.display_name||person.username||'Miembro')}</strong> ${insigniasMarkup(badgeMap.get(p.author_id)||[])} <span class="mu">@${esc(person.username||'usuario')} · ${new Date(p.created_at).toLocaleDateString('es')}</span></div><p>${esc(p.texto||'')}</p>${p.media_url?`<img src="${esc(p.media_url)}" alt="Contenido de la publicación" style="max-width:100%;border-radius:12px;margin-top:8px">`:''}<div class="a"><span>${I('cmt')}${rows.length} comentarios</span></div>${rows.length?`<div class="gw-post-comments">${rows.map(c=>{const cp=people.get(c.author_id)||{};return `<div class="gw-admin-user"><div class="gw-admin-user-main"><b>${esc(cp.display_name||cp.username||'Miembro')} ${insigniasMarkup(badgeMap.get(c.author_id)||[])} <span class="mu">@${esc(cp.username||'usuario')}</span></b><small>${renderCommentMentions(c.texto,people)} · ${new Date(c.created_at).toLocaleDateString('es')}</small></div></div>`;}).join('')}</div>`:'' }<form class="gw-comment-form" data-gw-comment-form data-post-id="${esc(p.id)}"><input class="inp" name="texto" maxlength="1000" placeholder="Escribe un comentario… usa @usuario" required><button type="submit">Enviar</button></form></div></article>`;
   }).join('');
 }
-document.addEventListener('submit',async e=>{const form=e.target.closest('[data-gw-comment-form]');if(!form)return;e.preventDefault();if(!currentUser)return toast('Inicia sesión para comentar.');const input=form.elements.texto,button=form.querySelector('button'),texto=input.value.trim();if(!texto)return;button.disabled=true;try{const {error}=await supabaseClient.from('comments').insert({post_id:Number(form.dataset.postId),author_id:currentUser.id,texto});if(error)throw error;input.value='';toast('Comentario publicado.');await loadCommunityFeed();}catch(error){console.error('Error publicando comentario:',error);toast(error.message||'No se pudo publicar el comentario.');}finally{if(button.isConnected)button.disabled=false;}});\nfunction adminPage() {
+document.addEventListener('submit',async e=>{const form=e.target.closest('[data-gw-comment-form]');if(!form)return;e.preventDefault();if(!currentUser)return toast('Inicia sesión para comentar.');const input=form.elements.texto,button=form.querySelector('button'),texto=input.value.trim();if(!texto)return;button.disabled=true;try{const {error}=await supabaseClient.from('comments').insert({post_id:Number(form.dataset.postId),author_id:currentUser.id,texto});if(error)throw error;input.value='';toast('Comentario publicado.');await loadCommunityFeed();}catch(error){console.error('Error publicando comentario:',error);toast(error.message||'No se pudo publicar el comentario.');}finally{if(button.isConnected)button.disabled=false;}});
+function adminPage() {
   if (!isGeffenAdmin) return `<div class="wrap"><section class="card"><b>Acceso restringido</b><p class="mu">Esta sección solo está disponible para administradores autorizados.</p></section></div>`;
   return `<div class="gw-admin-wrap">
     <header class="gw-admin-head"><a href="#menu" data-back aria-label="Volver">←</a><div><h1>Administración</h1><p>Gestión de insignias de GeffenWeverse</p></div></header>

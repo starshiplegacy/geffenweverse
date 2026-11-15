@@ -447,67 +447,44 @@ const radioAudio = new Audio();
 radioAudio.preload = 'none';
 radioAudio.volume = 0.35;
 let radioStations = [], radioIndex = -1, radioLoading = false, radioLoaded = false;
-const radioTags = ['k-pop', 'pop', 'latin pop'];
+const radioFailedStations = new Set();
+const radioTags = ['k-pop', 'kpop', 'pop', 'latin pop', 'pop latino'];
 const radioLabel = s => [s?.name, s?.country].filter(Boolean).join(' · ') || 'GEFFEN RADIO';
-function radioStatus(message) {
-  document.querySelectorAll('[data-radio-station]').forEach(el => el.textContent = message);
-}
-function radioShuffle(items) {
-  const a = [...items];
-  for (let i=a.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-  return a;
-}
+function radioStatus(message) { document.querySelectorAll('[data-radio-station]').forEach(el => el.textContent = message); }
+function radioShuffle(items) { const a=[...items]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 async function radioLoadCatalog() {
-  if (!radioOn() || radioLoaded || radioLoading) return;
-  radioLoading = true;
-  radioStatus('Buscando emisoras internacionales…');
+  if(!radioOn()||radioLoaded||radioLoading)return;
+  radioLoading=true; radioStatus('Buscando emisoras K-pop, pop y pop latino…');
   try {
-    const results = await Promise.all(radioTags.map(async tag => {
-      const url = 'https://spinnradio.com/api/stations?tag='+encodeURIComponent(tag)+'&limit=35&order=clickcount&reverse=true&hidebroken=true';
-      const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
-      if (!response.ok) throw new Error('No se pudo consultar el catálogo de radio.');
-      const data = await response.json();
-      return Array.isArray(data) ? data : (data.stations || data.items || []);
+    const results=await Promise.allSettled(radioTags.map(async tag=>{
+      const url='https://spinnradio.com/api/stations?tag='+encodeURIComponent(tag)+'&limit=35&order=clickcount&reverse=true&hidebroken=true';
+      const response=await fetch(url,{headers:{'Accept':'application/json'}});
+      if(!response.ok)throw new Error('Catálogo no disponible para '+tag);
+      const data=await response.json(); return Array.isArray(data)?data:(data.stations||data.items||[]);
     }));
-    const unique = new Map();
-    results.flat().forEach(station => {
-      const stream = station.url_resolved || station.url;
-      const id = station.stationuuid || station.id;
-      if (!id || !stream || !/^https:\/\//i.test(stream)) return;
-      if (!unique.has(id)) unique.set(id, { id, name: station.name || 'Emisora internacional', country: station.country || '', stream, tags: station.tags || '', homepage: station.homepage || '' });
+    const available=results.filter(x=>x.status==='fulfilled').flatMap(x=>x.value);
+    if(!available.length)throw new Error('No se pudo conectar con el catálogo de emisoras.');
+    const unique=new Map();
+    available.forEach(station=>{
+      const stream=station.url_resolved||station.url, id=station.stationuuid||station.id;
+      if(!id||!stream||!/^https:\/\//i.test(stream)||station.lastcheckok===false||station.lastcheckok===0)return;
+      if(!unique.has(id))unique.set(id,{id,name:station.name||'Emisora internacional',country:station.country||station.countrycode||'',stream,tags:station.tags||'',homepage:station.homepage||''});
     });
-    radioStations = radioShuffle([...unique.values()]);
-    radioLoaded = true;
-    if (!radioStations.length) throw new Error('No encontramos streams HTTPS compatibles.');
-    radioIndex = 0;
-    radioSetStation(radioIndex, true);
-  } catch (error) {
-    console.error('GEFFEN RADIO:', error);
-    radioStatus('No se pudo cargar la radio. Inténtalo de nuevo más tarde.');
-  } finally { radioLoading = false; }
+    radioStations=radioShuffle([...unique.values()]);
+    if(!radioStations.length)throw new Error('No encontramos emisoras con streams HTTPS compatibles.');
+    radioFailedStations.clear(); radioIndex=Math.floor(Math.random()*radioStations.length); radioLoaded=true;
+    radioSetStation(radioIndex,true);
+  } catch(error) { radioLoaded=false; console.error('GEFFEN RADIO:',error); radioStatus('No se pudo conectar la radio. Abre de nuevo los controles para reintentar.'); }
+  finally { radioLoading=false; }
 }
-function radioSetStation(index, autoplay=true) {
-  if (!radioStations.length || !radioOn()) return;
-  radioIndex = (index + radioStations.length) % radioStations.length;
-  const station = radioStations[radioIndex];
-  radioAudio.pause();
-  radioAudio.src = station.stream;
-  radioAudio.load();
-  radioStatus('GEFFEN RADIO · '+radioLabel(station));
-  if (autoplay) {
-    const attempt = radioAudio.play();
-    if (attempt && attempt.catch) attempt.catch(() => radioStatus('GEFFEN RADIO · Toca la pantalla para iniciar · '+radioLabel(station)));
-  }
+function radioSetStation(index,autoplay=true) {
+  if(!radioStations.length||!radioOn())return;
+  radioIndex=(index+radioStations.length)%radioStations.length; const station=radioStations[radioIndex];
+  radioAudio.pause(); radioAudio.src=station.stream; radioAudio.load(); radioStatus('GEFFEN RADIO · '+radioLabel(station));
+  if(autoplay){const attempt=radioAudio.play();if(attempt&&attempt.catch)attempt.catch(()=>radioStatus('GEFFEN RADIO · Toca la pantalla para iniciar · '+radioLabel(station)));}
 }
-function radioStep(direction) {
-  if (!radioOn()) { radioStatus('Activa GEFFEN RADIO desde Ajustes.'); return; }
-  if (!radioLoaded) { radioLoadCatalog(); return; }
-  radioSetStation(radioIndex + direction, true);
-}
-function radioEnable() {
-  if (radioOn()) radioLoadCatalog();
-  else { radioAudio.pause(); radioAudio.removeAttribute('src'); radioAudio.load(); radioStatus('GEFFEN RADIO desactivada desde Ajustes.'); }
-}
+function radioStep(direction) { if(!radioOn()){radioStatus('Activa GEFFEN RADIO desde Ajustes.');return;} if(!radioLoaded){radioLoadCatalog();return;} radioSetStation(radioIndex+direction,true); }
+function radioEnable() { if(radioOn())radioLoadCatalog();else{radioAudio.pause();radioAudio.removeAttribute('src');radioAudio.load();radioStatus('GEFFEN RADIO desactivada desde Ajustes.');} }
 radioAudio.addEventListener('error', () => radioStatus('Esta emisora no está disponible. Prueba con ⏭️.'));
 radioAudio.addEventListener('playing', () => radioStatus('EN VIVO · '+radioLabel(radioStations[radioIndex])));
 radioAudio.addEventListener('pause', () => { if (radioOn() && radioStations[radioIndex]) radioStatus('EN PAUSA · '+radioLabel(radioStations[radioIndex])); });

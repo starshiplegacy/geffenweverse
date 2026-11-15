@@ -324,6 +324,9 @@ button.radio.on{color:#22c55e}button.radio.off{color:#3b82f6}
 .gw-feed-wrap{max-width:780px}.gw-composer h2,.gw-discovery h2{font-size:16px;margin-bottom:12px}.gw-field-label{display:block;font-size:12px;font-weight:700;margin:12px 0 6px}.gw-field-label .mu{display:inline;margin-left:5px}.gw-composer .inp,.gw-discovery .inp{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px;color:var(--tx);font:inherit}.gw-composer textarea{resize:vertical;min-height:100px}.gw-composer-media{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}.gw-upload-btn{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}.gw-upload-btn input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}.gw-submit{width:100%;padding:12px;border-radius:10px;background:var(--brand);color:#001719;font-weight:800}.gw-submit:disabled{opacity:.55}.gw-post-preview{margin:10px 0}.gw-post-preview img,.gw-post-preview video{max-width:100%;max-height:280px;border-radius:12px}.gw-composer-locked p{margin-top:5px}.gw-discovery{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:16px 0}.gw-discovery>div{flex:none}.gw-discovery .inp{max-width:420px}.gw-trending{padding:12px}.gw-section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.gw-section-head h3{font-size:13px}.gw-trend-tag,.gw-hashtag{display:inline-flex;align-items:center;gap:5px;color:#60a5fa;font-weight:700;margin:3px 6px 3px 0}.gw-trend-tag{border:1px solid var(--line);border-radius:99px;padding:6px 9px;background:var(--bg)}.gw-trend-tag small{color:var(--mu)}.gw-post-title{font-size:16px;margin:10px 0 5px}.gw-post-body{line-height:1.55;overflow-wrap:anywhere;margin-top:7px}.gw-post-media{display:block;width:100%;max-height:520px;object-fit:contain;background:#080808;border-radius:12px;margin-top:10px}.gw-post-card{margin:12px 0}.gw-mention{color:#c084fc;font-weight:700}.gw-hashtag{padding:0;background:none;border:0;font:inherit;cursor:pointer}.gw-comment-form{display:flex;gap:8px;margin-top:10px}.gw-comment-form .inp{flex:1;min-width:0}.gw-comment-form button{background:var(--brand);color:#001719;border-radius:9px;padding:8px 12px;font-weight:700}
 @media(max-width:560px){.gw-discovery{display:block}.gw-discovery .inp{max-width:none;margin-top:10px}.gw-composer-media{align-items:stretch}.gw-upload-btn{flex:1;text-align:center}.gw-post-media{max-height:390px}}
 .gw-mention-suggestions{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:5px;margin-top:5px}.gw-mention-suggestions button{display:block;width:100%;text-align:left;padding:8px;border-radius:7px}.gw-mention-suggestions button:hover{background:var(--bg)}
+
+/* Seguidores y perfiles públicos */
+.gw-person-row{gap:10px}.gw-person-link{display:flex;align-items:center;gap:12px;flex:1;min-width:0}.gw-person-meta{display:flex;flex-direction:column;min-width:0}.gw-person-meta b{overflow:hidden;text-overflow:ellipsis}.gw-person-row .av img,.gw-public-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}.gw-follow-button{flex:none;border:1px solid var(--ac);border-radius:99px;padding:8px 14px;font-size:12px;font-weight:800;background:var(--ac);color:#07120f}.gw-follow-button.is-following{background:transparent;color:var(--tx);border-color:var(--line)}.gw-follow-button:disabled{opacity:.55}.gw-public-cover{height:130px;border-radius:14px;background:var(--card);overflow:hidden}.gw-public-cover img{width:100%;height:100%;object-fit:cover}.gw-public-person{display:flex;align-items:center;gap:12px;margin-top:-28px;padding:0 12px}.gw-public-avatar{width:76px;height:76px;border:4px solid var(--card);background:var(--bg);flex:none}.gw-public-name{flex:1;min-width:0}.gw-public-name h2{font-size:18px}.gw-public-bio{margin:14px 12px;line-height:1.5}.gw-public-person .gw-follow-button{margin-left:auto}
 </style>
 
 <style id="gw-responsive-system">
@@ -533,6 +536,7 @@ const Auth = {
   },
   async sync(session,event='INITIAL_SESSION') {
     currentUser=session?.user||null; currentProfile=null; currentBadges=[]; isGeffenAdmin=false; isGeffenWhitelisted=false;
+    if(!currentUser) avisos=[];
     if(currentUser) {
       const {data,error}=await supabaseClient.from('profiles').select('id, username, display_name, bio, avatar_url, banner_url, rol, created_at').eq('id',currentUser.id).maybeSingle();
       if(error) console.error('No se pudo cargar el perfil:',error);
@@ -557,6 +561,7 @@ const Auth = {
     else if(event==='SIGNED_OUT') { if(location.hash!=='#login'&&location.hash!=='#registro') location.hash='#login'; }
     else if(currentUser&&['login','registro','recuperar','restablecer'].includes(location.hash.slice(1))) location.hash='#inicio';
     render();
+    if(currentUser) loadNotifications(false);
   },
   async init() {
     try {
@@ -609,9 +614,7 @@ const Auth = {
 };
 const pedidos = []; /* Solo pedidos hechos en Geffen Shop. Ej: {id:"SL-0001",fecha:"13/11/2026",estado:"En preparación",total:"USD $25.00",articulos:"Álbum x1"} */
 
-/* Listas de personas: { nombre, id }  ->  conecta aquí tu backend (id se muestra como @id) */
-const listaSiguiendo = [1, 2, 3, 4, 5, 6].map(n => ({ nombre: `Username ${n}`, id: `username${n}` }));   /* A los que sigues */
-const listaSeguidores = [1, 2, 3, 4, 5, 6].map(n => ({ nombre: `Seguidor ${n}`, id: `seguidor${n}` })); /* Los que te siguen */
+/* Las relaciones de seguimiento se consultan desde public.follows. */
 
 /* Artistas de Starship Legacy. Cada uno abre su WikiGeffen en #wiki-<slug> */
 const artistas = [
@@ -724,10 +727,8 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u03
 let buscarTipo = 'todo';
 function resultados(q, tipo) {
   const n = norm(q.trim());
-  const gente = [...listaSiguiendo, ...listaSeguidores].filter((u, i, a) => a.findIndex(x => x.id === u.id) === i);
   const grupos = [
     { t: 'artistas', n: n ? 'Artistas' : 'Artistas sugeridos', items: artistas.map(a => ({ href: '#wiki-' + a.slug, nombre: a.nombre, sub: a.tipo })) },
-    { t: 'creadores', n: 'Creadores', items: gente.map(u => ({ nombre: u.nombre, sub: '@' + u.id })) },
     { t: 'publicaciones', n: 'Publicaciones', items: publicaciones.map(p => ({ href: p.href, nombre: p.autor, sub: '@' + p.id + ' · ' + p.texto })) },
     { t: 'ayuda', n: 'Ayuda (FAQ)', items: listaFaq.map(f => ({ href: '#faq', nombre: f.pregunta, sub: '' })) }
   ];
@@ -745,13 +746,13 @@ function resultados(q, tipo) {
 /* ===== NOTIFICACIONES (conecta tu backend) =====
    tipos: follow (te siguieron) | starlight (explosión de Starlight = Like en tu publicación o comentario)
           comentario (comentaron tu publicación) | respuesta (respondieron tu comentario) */
-// Sin notificaciones de demostración. Se mostrarán cuando lleguen datos reales del backend.
-const avisos = [];
+let avisos = [];
 let avisosTipo = 'todo';
-const leidas = () => J.get('avisos-leidos', []);
-const sinLeer = () => avisos.filter(n => !leidas().includes(n.id)).length;
+const sinLeer = () => avisos.filter(n => !n.leida).length;
+function haceTiempo(date){const seconds=Math.max(0,Math.floor((Date.now()-new Date(date).getTime())/1000));if(seconds<60)return 'Ahora';if(seconds<3600)return 'Hace '+Math.floor(seconds/60)+' min';if(seconds<86400)return 'Hace '+Math.floor(seconds/3600)+' h';if(seconds<604800)return 'Hace '+Math.floor(seconds/86400)+' días';return new Date(date).toLocaleDateString('es');}
+function updateBellCount(){const bell=document.querySelector('.bell');if(!bell)return;const count=sinLeer();const dot=bell.querySelector('.dot');if(count){if(dot)dot.textContent=count;else bell.insertAdjacentHTML('beforeend','<span class="dot">'+count+'</span>');}else if(dot)dot.remove();}
+async function loadNotifications(renderPage=false){if(!currentUser)return;const {data,error}=await supabaseClient.from('notifications').select('id,user_id,actor_id,tipo,objetivo,texto,leida,created_at').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(100);if(error){console.error('No se pudieron cargar las notificaciones:',error);return;}const actorIds=[...new Set((data||[]).map(n=>n.actor_id).filter(Boolean))];const {data:profiles}=actorIds.length?await supabaseClient.from('profiles').select('id,username,display_name').in('id',actorIds):{data:[]};const people=new Map((profiles||[]).map(p=>[p.id,p]));avisos=(data||[]).map(n=>{const actor=people.get(n.actor_id)||{};return {...n,usuario:actor.display_name||actor.username||'Un usuario',hace:haceTiempo(n.created_at)};});updateBellCount();if(renderPage){const host=document.getElementById('av-lista');if(host)host.innerHTML=listaAvisos(avisosTipo);}}
 function listaAvisos(tipo) {
-  const L = leidas();
   const grupo = { seguidores: ['follow'], starlight: ['starlight'], comentarios: ['comentario', 'respuesta'] }[tipo];
   const items = avisos.filter(n => !grupo || grupo.includes(n.tipo));
   if (!items.length) return vacio('Aún no tienes notificaciones');
@@ -759,7 +760,8 @@ function listaAvisos(tipo) {
   const icono = { follow: 'user', starlight: 'star', comentario: 'cmt', respuesta: 'cmt' };
   return `<section class="card">${items.map((n, i) => {
     const txt = { follow: 'empezó a seguirte', starlight: `dio una explosión de Starlight a ${esc(n.objetivo || '')}`, comentario: `comentó en tu publicación: “${esc(n.texto || '')}”`, respuesta: `respondió a tu comentario: “${esc(n.texto || '')}”` }[n.tipo];
-    return `<a class="usr" href="${n.tipo === 'follow' ? '#seguidores' : '#perfil'}" data-act="leer" data-id="${n.id}"><span class="av g${i % 3 + 1}" style="position:relative"><span class="nb" style="background:${color[n.tipo]}">${I(icono[n.tipo])}</span></span><div style="flex:1;min-width:0"><span><b style="display:inline">${esc(n.usuario)}</b> ${txt}</span><span class="mu">${n.hace}</span></div>${L.includes(n.id) ? '' : '<span class="ud"></span>'}</a>`;
+    const href=n.tipo==='follow'&&n.actor_id?'#usuario-'+n.actor_id:'#perfil';
+    return `<a class="usr" href="${href}" data-act="leer" data-id="${n.id}"><span class="av g${i % 3 + 1}" style="position:relative"><span class="nb" style="background:${color[n.tipo]}">${I(icono[n.tipo])}</span></span><div style="flex:1;min-width:0"><span><b style="display:inline">${esc(n.usuario)}</b> ${txt}</span><span class="mu">${n.hace}</span></div>${n.leida ? '' : '<span class="ud"></span>'}</a>`;
   }).join('')}</section>`;
 }
 
@@ -867,7 +869,7 @@ const pages = {
     <section class="info"><div class="nm">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}${insigniasMarkup()}</div><div class="mu" style="font-size:13px;margin:0 0 8px">@${esc(currentProfile?.username || currentUser?.id?.slice(0,10) || 'usuario')} · <span class="pill">${rolNombre()}</span></div>
       <p class="mu" style="font-size:14px">${esc(currentProfile?.bio || 'Añade una biografía a tu perfil.')}</p>
       <div class="meta"><span>${I('pin')}Ubicación</span><span>${I('cal')}Se unió en ${currentProfile?.created_at ? new Date(currentProfile.created_at).getFullYear() : '—'}</span></div>
-      <div class="cnt"><a href="#siguiendo"><b>256</b> Siguiendo</a><a href="#seguidores"><b>165</b> Seguidores</a></div></section>
+      <div class="cnt" id="gw-profile-follow-counts"><a href="#siguiendo"><b id="gw-following-count">0</b> Siguiendo</a><a href="#seguidores"><b id="gw-followers-count">0</b> Seguidores</a></div></section>
     <div class="ptabs"><span class="on">Publicaciones</span><span>Respuestas</span><span>Multimedia</span><span>Me gusta</span></div>
     <section class="card" id="gw-profile-posts"><p class="mu" style="text-align:center;padding:18px 0">Cargando publicaciones…</p></section>
     ${nav('perfil')}
@@ -952,9 +954,9 @@ const pages = {
         ${artistas.map((a, i) => `<a class="usr" href="#merch-${a.slug}"><span class="av g${i % 3 + 1}"></span><div style="flex:1"><b>${a.nombre}</b><span class="mu">${a.tipo} · Merch oficial</span></div>${I('chev', 'chev')}</a>`).join('')}</details>
     </section></main>
     <button class="up" data-up aria-label="Volver arriba"><svg class="i"><path d="M5 4h14"/><path d="M12 20V9M6 14l6-6 6 6"/></svg></button></div>`,
-  buscar: () => { buscarTipo = 'todo'; return `<div class="wrap"><header class="bar"><a href="#inicio" data-back aria-label="Volver">${I('back')}</a><label class="sbox">${I('search')}<input id="q" type="search" placeholder="Search" aria-label="Search" autocomplete="off"></label></header>
-    <div class="chips">${[['todo', 'Todo'], ['artistas', 'Artistas'], ['creadores', 'Creadores'], ['publicaciones', 'Publicaciones']].map(([k, l]) => `<button class="chip2 ${k === 'todo' ? 'on' : ''}" data-act="tipo" data-tipo="${k}">${l}</button>`).join('')}</div>
-    <div id="res">${resultados('', 'todo')}</div></div>`; },
+  buscar: () => { buscarTipo = 'todo'; return `<div class="wrap"><header class="bar"><a href="#inicio" data-back aria-label="Volver">${I('back')}</a><label class="sbox">${I('search')}<input id="q" type="search" placeholder="Buscar personas o artistas" aria-label="Search" autocomplete="off"></label></header>
+    <div class="chips">${[['todo', 'Todo'], ['artistas', 'Artistas'], ['creadores', 'Personas'], ['publicaciones', 'Publicaciones']].map(([k, l]) => `<button class="chip2 ${k === 'todo' ? 'on' : ''}" data-act="tipo" data-tipo="${k}">${l}</button>`).join('')}</div>
+    <div id="gw-creator-results"></div><div id="res">${resultados('', 'todo')}</div></div>`; },
   avisos: () => { avisosTipo = 'todo'; return `<div class="wrap"><header class="bar"><a href="#inicio" data-back aria-label="Volver">${I('back')}</a><h1>Notificaciones</h1><button class="pill" style="margin-left:auto" data-act="leertodo">Marcar todo como leído</button></header>
     <div class="chips">${[['todo', 'Todo'], ['seguidores', 'Seguidores'], ['starlight', 'Starlight'], ['comentarios', 'Comentarios']].map(([k, l]) => `<button class="chip2 ${k === 'todo' ? 'on' : ''}" data-act="avtipo" data-tipo="${k}">${l}</button>`).join('')}</div>
     <div id="av-lista">${listaAvisos('todo')}</div></div>`; },
@@ -991,16 +993,22 @@ const pages = {
 /* Lista de personas: foto a la izquierda; nombre y @id apilados a la derecha */
 function personas(tipo) {
   const sig = tipo === 'siguiendo';
-  const datos = sig ? listaSiguiendo : listaSeguidores;
-  const fotos = ['g1', 'g2', 'g3'];
   return `<div class="wrap"><header class="bar"><a href="#perfil" data-back aria-label="Volver">${I('back')}</a>
     <h1>${sig ? 'Siguiendo' : 'Seguidores'}<span class="mu" style="font-weight:400;font-size:12px;margin:2px 0 0">${sig ? 'A los que sigues' : 'Los que te siguen'}</span></h1></header>
     <div class="ptabs"><a href="#siguiendo" data-replace class="${sig ? 'on' : ''}">Siguiendo</a><a href="#seguidores" data-replace class="${sig ? '' : 'on'}">Seguidores</a></div>
-    <section class="card" style="margin-top:12px">${datos.length
-      ? datos.map((u, i) => `<div class="usr"><span class="av ${fotos[i % 3]}"></span><div><b>${u.nombre}</b><span class="mu">@${u.id}</span></div></div>`).join('')
-      : `<p class="mu" style="text-align:center;padding:24px 0">${sig ? 'Aún no sigues a nadie' : 'Aún no tienes seguidores'}</p>`}</section></div>`;
+    <section class="card" id="gw-follow-list" style="margin-top:12px"><p class="mu" style="text-align:center;padding:24px 0">Cargando cuentas…</p></section></div>`;
 }
 
+/* ===== Seguidores: datos reales desde Supabase ===== */
+function followButton(userId,isFollowing){if(!currentUser||userId===currentUser.id)return '';return '<button type="button" class="gw-follow-button '+(isFollowing?'is-following':'')+'" data-follow-user="'+esc(userId)+'" data-following="'+(isFollowing?'true':'false')+'">'+(isFollowing?'Siguiendo':'Seguir')+'</button>';}
+function profileRow(p,isFollowing){const name=p.display_name||p.username||'Usuario';const avatar=p.avatar_url?'<img src="'+esc(p.avatar_url)+'" alt="">':'';return '<div class="usr gw-person-row"><a class="gw-person-link" href="#usuario-'+esc(p.id)+'"><span class="av">'+avatar+'</span><span class="gw-person-meta"><b>'+esc(name)+'</b><span class="mu">@'+esc(p.username||'usuario')+'</span></span></a>'+followButton(p.id,isFollowing)+'</div>';}
+async function loadProfileFollowCounts(){const a=document.getElementById('gw-following-count'),b=document.getElementById('gw-followers-count');if(!a||!b||!currentUser)return;const [{count:following,error:e1},{count:followers,error:e2}]=await Promise.all([supabaseClient.from('follows').select('following_id',{count:'exact',head:true}).eq('follower_id',currentUser.id),supabaseClient.from('follows').select('follower_id',{count:'exact',head:true}).eq('following_id',currentUser.id)]);if(e1||e2){console.error('No se pudieron cargar los contadores:',e1||e2);return;}a.textContent=following||0;b.textContent=followers||0;}
+async function loadFollowList(tipo){const host=document.getElementById('gw-follow-list');if(!host||!currentUser)return;const sig=tipo==='siguiendo';const field=sig?'following_id':'follower_id';const {data:rows,error}=await supabaseClient.from('follows').select('follower_id,following_id,created_at').eq(sig?'follower_id':'following_id',currentUser.id).order('created_at',{ascending:false});if(error){host.innerHTML='<p class="mu">No se pudo cargar la lista. Inténtalo de nuevo.</p>';console.error(error);return;}const ids=(rows||[]).map(r=>r[field]).filter(Boolean);if(!ids.length){host.innerHTML='<p class="mu" style="text-align:center;padding:24px 0">'+(sig?'Aún no sigues a nadie. Descubre personas desde Buscar.':'Aún no tienes seguidores.')+'</p>';return;}const {data:profiles,error:profileError}=await supabaseClient.from('profiles').select('id,username,display_name,avatar_url').in('id',ids);if(profileError){host.innerHTML='<p class="mu">No se pudieron cargar los perfiles.</p>';return;}const people=new Map((profiles||[]).map(p=>[p.id,p]));let following=new Set(sig?ids:[]);if(!sig){const {data:myRows}=await supabaseClient.from('follows').select('following_id').eq('follower_id',currentUser.id).in('following_id',ids);following=new Set((myRows||[]).map(x=>x.following_id));}host.innerHTML=ids.map(id=>people.get(id)).filter(Boolean).map(p=>profileRow(p,following.has(p.id))).join('')||'<p class="mu" style="text-align:center;padding:24px">No hay perfiles disponibles.</p>';}
+async function toggleFollow(targetId,button){if(!currentUser)return toast('Inicia sesión para seguir a alguien.');if(targetId===currentUser.id)return toast('No puedes seguir tu propia cuenta.');const wasFollowing=button.dataset.following==='true';button.disabled=true;try{const result=wasFollowing?await supabaseClient.from('follows').delete().eq('follower_id',currentUser.id).eq('following_id',targetId):await supabaseClient.from('follows').insert({follower_id:currentUser.id,following_id:targetId});if(result.error)throw result.error;toast(wasFollowing?'Dejaste de seguir esta cuenta.':'¡Ahora sigues esta cuenta!');await loadProfileFollowCounts();if(location.hash==='#siguiendo'||location.hash==='#seguidores')await loadFollowList(location.hash.slice(1));if(location.hash==='#usuario-'+targetId)await loadPublicProfile(targetId);if(location.hash==='#avisos')await loadNotifications(true);}catch(error){console.error('No se pudo actualizar el seguimiento:',error);toast(error.message||'No se pudo actualizar el seguimiento.');button.disabled=false;}}
+function userPage(id){return '<div class="wrap"><header class="bar"><a href="#buscar" data-back aria-label="Volver">'+I('back')+'</a><h1>Perfil</h1></header><section class="card" id="gw-public-profile"><p class="mu" style="text-align:center;padding:24px">Cargando perfil…</p></section></div>';}
+async function loadPublicProfile(id){const host=document.getElementById('gw-public-profile');if(!host||!id)return;if(id===currentUser?.id){location.hash='#perfil';return;}const {data:p,error}=await supabaseClient.from('profiles').select('id,username,display_name,bio,avatar_url,banner_url,rol,created_at').eq('id',id).maybeSingle();if(error||!p){host.innerHTML='<p class="mu">No encontramos este perfil.</p>';return;}const [{count:following},{count:followers},{data:badges},{data:relation}]=await Promise.all([supabaseClient.from('follows').select('following_id',{count:'exact',head:true}).eq('follower_id',id),supabaseClient.from('follows').select('follower_id',{count:'exact',head:true}).eq('following_id',id),supabaseClient.from('user_badges').select('badge_key').eq('user_id',id),currentUser?supabaseClient.from('follows').select('following_id').eq('follower_id',currentUser.id).eq('following_id',id).maybeSingle():Promise.resolve({data:null})]);const avatar=p.avatar_url?'<img src="'+esc(p.avatar_url)+'" alt="">':'';host.innerHTML='<div class="gw-public-cover">'+(p.banner_url?'<img src="'+esc(p.banner_url)+'" alt="">':'')+'</div><div class="gw-public-person"><span class="av gw-public-avatar">'+avatar+'</span><div class="gw-public-name"><h2>'+esc(p.display_name||p.username||'Usuario')+'</h2>'+insigniasMarkup(badges||[])+'<p class="mu">@'+esc(p.username||'usuario')+' · '+esc(({estrella:'Estrella creativa',astroturista:'Astroturista'})[p.rol]||'Miembro')+'</p></div>'+followButton(id,!!relation)+'</div><p class="gw-public-bio">'+esc(p.bio||'Este usuario aún no ha añadido una biografía.')+'</p><div class="cnt"><span><b>'+(following||0)+'</b> Siguiendo</span><span><b>'+(followers||0)+'</b> Seguidores</span></div>';}
+async function loadCreatorSearch(query){const host=document.getElementById('gw-creator-results');if(!host||!currentUser)return;const q=(query||'').trim().replace(/[,%()]/g,'');let request=supabaseClient.from('profiles').select('id,username,display_name,avatar_url').neq('id',currentUser.id).order('created_at',{ascending:false}).limit(20);if(q)request=request.or('username.ilike.%'+q+'%,display_name.ilike.%'+q+'%');const {data,error}=await request;if(error){host.innerHTML='<section class="card"><p class="mu">No se pudieron buscar personas.</p></section>';return;}const ids=(data||[]).map(p=>p.id);const {data:rels}=ids.length?await supabaseClient.from('follows').select('following_id').eq('follower_id',currentUser.id).in('following_id',ids):{data:[]};const set=new Set((rels||[]).map(r=>r.following_id));host.innerHTML='<section class="card"><h2>'+(q?'Personas encontradas':'Personas en GeffenWeverse')+'</h2>'+(data?.length?data.map(p=>profileRow(p,set.has(p.id))).join(''):'<p class="mu" style="padding:16px 0">No encontramos personas.</p>')+'</section>';}
+document.addEventListener('click',e=>{const button=e.target.closest('[data-follow-user]');if(!button)return;e.preventDefault();e.stopPropagation();toggleFollow(button.dataset.followUser,button);});
 /* WikiGeffen: enciclopedia de cada artista de Starship Legacy (secciones listas para llenar) */
 function wiki(slug) {
   const a = artistas.find(x => x.slug === slug);
@@ -1155,8 +1163,11 @@ function render() {
   applyPrefs();
   if (r === 'admin') adminLoadUsers();
   if (r === 'feed') loadCommunityFeed();
-  if (r === 'perfil') loadOwnProfilePosts();
-  if (r === 'buscar') { const q = $('#q'); if (q) q.focus(); }
+  if (r === 'perfil') { loadOwnProfilePosts(); loadProfileFollowCounts(); }
+  if (r === 'siguiendo' || r === 'seguidores') loadFollowList(r);
+  if (r === 'avisos') loadNotifications(true);
+  if (r === 'buscar') { const q = $('#q'); if (q) q.focus(); loadCreatorSearch(q?.value||''); }
+  if (r.startsWith('usuario-')) loadPublicProfile(r.slice(8));
   window.scrollTo(0, 0);
 }
 /* Pila de navegación interna: las flechas vuelven a la pantalla anterior real */
@@ -1280,9 +1291,9 @@ const acciones = {
     l.unshift({ codigo: c, titulo: codigosValidos[c].titulo, fecha: new Date().toLocaleDateString('es') });
     J.set('multimedia', l); toast('¡Código canjeado!'); location.hash = '#multimedia';
   },
-  tipo(t) { buscarTipo = t.dataset.tipo; document.querySelectorAll('.chip2').forEach(c => c.classList.toggle('on', c === t)); $('#res').innerHTML = resultados($('#q').value, buscarTipo); },
-  leer(t) { const L = leidas(); if (!L.includes(t.dataset.id)) { L.push(t.dataset.id); J.set('avisos-leidos', L); } },
-  leertodo() { J.set('avisos-leidos', avisos.map(n => n.id)); render(); },
+  tipo(t) { buscarTipo = t.dataset.tipo; document.querySelectorAll('.chip2').forEach(c => c.classList.toggle('on', c === t)); $('#res').innerHTML = resultados($('#q').value, buscarTipo); loadCreatorSearch($('#q')?.value||''); },
+  async leer(t) { const id=Number(t.dataset.id);const {error}=await supabaseClient.from('notifications').update({leida:true}).eq('id',id).eq('user_id',currentUser.id);if(!error){const n=avisos.find(x=>x.id===id);if(n)n.leida=true;updateBellCount();} },
+  async leertodo() { const {error}=await supabaseClient.from('notifications').update({leida:true}).eq('user_id',currentUser.id).eq('leida',false);if(error)toast('No se pudieron marcar como leídas.');else{avisos.forEach(n=>n.leida=true);updateBellCount();render();} },
   avtipo(t) { avisosTipo = t.dataset.tipo; document.querySelectorAll('.chip2').forEach(c => c.classList.toggle('on', c === t)); $('#av-lista').innerHTML = listaAvisos(avisosTipo); },
   deseo(t) { const p = productos.find(x => x.id === t.dataset.id); if (!p) return; let d = J.get('deseos', []); const ya = d.some(x => x.id === p.id); d = ya ? d.filter(x => x.id !== p.id) : [...d, p]; J.set('deseos', d); t.classList.toggle('on', !ya); toast(ya ? 'Quitado de tu lista de deseos' : 'Guardado en tu lista de deseos'); },
   sel(t) { let s = J.get('seleccion', []); s = s.includes(t.dataset.id) ? s.filter(i => i !== t.dataset.id) : [...s, t.dataset.id]; J.set('seleccion', s); },
@@ -1307,7 +1318,7 @@ const acciones = {
 };
 /* Busca mientras escribes */
 document.addEventListener('input', e => {
-  if (e.target.id === 'q') $('#res').innerHTML = resultados(e.target.value, buscarTipo);
+  if (e.target.id === 'q') { $('#res').innerHTML = resultados(e.target.value, buscarTipo); loadCreatorSearch(e.target.value); }
   if (e.target.id === 'qs') { const c = e.target.dataset.cat, q = e.target.value; $('#ps').innerHTML = (c.startsWith('merch-') && !q.trim()) ? merchBase : listaProductos(c, q); } /* búsqueda dentro de la tienda */
 });
 /* Guarda el idioma elegido en las listas desplegables */

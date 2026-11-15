@@ -285,6 +285,12 @@ button.radio.on{color:#22c55e}button.radio.off{color:#3b82f6}
 .gw-profile-form-actions button[type=submit]{background:var(--ac);color:#061014}
 .gw-profile-form-actions button:disabled{opacity:.55;cursor:wait}
 
+
+.gw-profile-role-card{display:flex;align-items:flex-start;gap:11px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);margin:4px 0 18px}
+.gw-profile-role-icon{display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:50%;background:var(--ac);color:#071014;font-size:17px}
+.gw-profile-role-card div{display:flex;flex-direction:column;gap:4px}
+.gw-profile-role-card b{font-size:11px}.gw-profile-role-card strong{font-size:13px}.gw-profile-role-card small{font-size:10px;line-height:1.45;color:var(--mu)}
+
 </style>
 </head>
 <body>
@@ -359,7 +365,7 @@ const SUPABASE_URL = 'https://uyhcocdknweqvcqgbnez.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_rXN8tl3lJec0UKRiQYWAUA_0iP042hp';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 let currentUser = null, currentProfile = null, authReady = false;
-const rolNombre = () => ({ astroturista: 'Astroturista', estrella: 'Estrella Creadora' }[currentProfile?.rol] || 'Astroturista');
+const rolNombre = () => ({ astroturista: 'Astroturista', estrella: 'Estrella creativa' }[currentProfile?.rol] || 'Astroturista');
 const Auth = {
   redirectUrl() { if (location.protocol === 'file:') throw new Error('Abre GeffenWeverse desde una dirección web (localhost o HTTPS) para usar la autenticación.'); return location.origin + location.pathname; },
   mensajeError(error) {
@@ -707,6 +713,7 @@ const pages = {
     <div class="gw-profile-modal" data-profile-modal hidden><section class="gw-profile-editor" role="dialog" aria-modal="true" aria-labelledby="gw-profile-title">
       <div class="gw-profile-editor-head"><div><h2 id="gw-profile-title">Editar perfil</h2><p>Personaliza tu presencia en GeffenWeverse</p></div><button type="button" data-profile-close aria-label="Cerrar">✕</button></div>
       <form data-profile-form>
+        <div class="gw-profile-role-card"><span class="gw-profile-role-icon">✦</span><div><b>Tipo de cuenta</b><strong>${rolNombre()}</strong><small>${currentProfile?.rol === 'estrella' ? 'Tu cuenta tiene permisos de Estrella creativa.' : 'Tu cuenta comienza como Astroturista. El acceso a Estrella creativa requiere aprobación del equipo de GeffenWeverse.'}</small></div></div>
         <label class="gw-profile-label">Foto de perfil</label><div class="gw-profile-upload-row"><div class="gw-profile-preview avatar" data-avatar-preview>${currentProfile?.avatar_url ? `<img src="${esc(currentProfile.avatar_url)}" alt="">` : '＋'}</div><div class="gw-profile-upload-copy"><input type="file" name="avatar" accept=".jpg,.jpeg,.png,image/jpeg,image/png"><small>JPG o PNG · 800 × 800 px · 1:1. Se muestra en círculo; mantén lo importante en el centro. Sin GIF ni transparencia.</small></div></div>
         <label class="gw-profile-label">Banner</label><div class="gw-profile-banner-preview" data-banner-preview>${currentProfile?.banner_url ? `<img src="${esc(currentProfile.banner_url)}" alt="">` : 'Vista previa del banner'}</div><input type="file" name="banner" accept=".jpg,.jpeg,.png,image/jpeg,image/png"><small class="gw-profile-help">JPG o PNG · 1500 × 500 px · proporción 3:1. Sin GIF ni transparencia.</small>
         <label class="gw-profile-label" for="gw-profile-name">Nombre</label><input class="inp" id="gw-profile-name" name="display_name" maxlength="80" value="${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || '')}" required>
@@ -796,7 +803,7 @@ const pages = {
   rol: () => `<div class="wrap" style="padding-top:48px"><section class="card"><h1 style="font-size:24px;margin-bottom:8px">Tu cuenta GeffenWeverse</h1><p class="mu">Tu tipo de cuenta está asignado por el equipo administrativo y no puede cambiarse desde el perfil.</p><div class="row"><span class="t"><b>Rol actual</b><small>${rolNombre()}</small></span></div><a class="auth-link" href="#inicio">Continuar</a></section></div>`,
   crear: () => `<div class="wrap">${barra('Crear', '', '#inicio')}${currentProfile?.rol === 'estrella'
     ? `<section class="card"><h2>¿Qué quieres subir?</h2>${row(null, 'doc', '#f472b6', 'Foto<small>Próximamente</small>')}${row(null, 'mega', '#60a5fa', 'Video<small>Próximamente</small>')}${row(null, 'cmt', '#22c55e', 'Post<small>Próximamente</small>')}</section>`
-    : `<section class="card">${vacio('Solo las Estrellas Creadoras pueden subir contenido. Como Astroturista puedes dar Starlights y escribir comentarios.')}</section>`}${nav('crear')}</div>`,
+    : `<section class="card">${vacio('Solo las Estrellas creativas pueden subir contenido. Como Astroturista puedes dar Starlights y escribir comentarios.')}</section>`}${nav('crear')}</div>`,
   /* Shorts: lista vertical con desplazamiento de un video por pantalla */
   shorts: () => { const dadas = J.get('short-stars', []); return `<div class="shorts" aria-label="Shorts">${listaShorts.map(s => { const on = dadas.includes(s.id); return `<article class="short" style="background:${s.fondo}"><span class="tit">Shorts</span><div class="info"><b>@${esc(s.arroba)}</b> <button class="pill" data-act="sseguir">Seguir</button><p style="margin-top:6px;line-height:1.3">${esc(s.texto)}</p></div><div class="rail"><button class="rb2 ${on ? 'on' : ''}" data-act="sstar" data-id="${s.id}" data-n="${s.stars}" aria-label="Dar Starlight">${I('star')}<span>${s.stars + (on ? 1 : 0)}</span></button><button class="rb2" data-act="sproximo" aria-label="Comentarios">${I('cmt')}<span>${s.coms}</span></button><button class="rb2" data-act="sproximo" aria-label="Compartir">${I('share')}<span>Compartir</span></button></div></article>`; }).join('')}</div>${nav('shorts')}`; },
   deseos: () => { const d = J.get('deseos', []), s = J.get('seleccion', []); return `<div class="lt">${tiendaTop('comprar')}<main class="shop"><div class="fila"><h1>Lista de Deseos</h1>${herramientas(false)}</div>
@@ -853,7 +860,7 @@ function auth(modo) {
     <div class="ga-field"><label for="ga-reg-pass">Contraseña</label><input id="ga-reg-pass" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="Mínimo 8 caracteres" required></div>
     <div class="ga-field"><label for="ga-reg-confirm">Confirmar contraseña</label><input id="ga-reg-confirm" name="confirm_password" type="password" autocomplete="new-password" minlength="8" placeholder="Repite la contraseña" required></div>
     <button class="ga-primary" type="submit">Crear cuenta</button>
-    <p class="ga-note">Tu cuenta comienza como Astroturista. El rol Estrella Creadora solo puede asignarlo el equipo administrativo.</p>
+    <p class="ga-note">Tu cuenta comienza como Astroturista. El rol Estrella creativa solo puede asignarlo el equipo administrativo.</p>
   </form>`;
   else if(recovery) form=`<form class="ga-fields" data-auth-form="recuperar">
     <div class="ga-field"><label for="ga-recover-email">Correo electrónico</label><input id="ga-recover-email" name="email" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com" required></div>

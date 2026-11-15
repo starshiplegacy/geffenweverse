@@ -61,6 +61,12 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .welcome-notice b{display:block;font-size:13px}
 .welcome-notice p{margin-top:5px;color:var(--mu);font-size:12px;line-height:1.5}
 
+/* ===== Insignias oficiales de GeffenWeverse ===== */
+.gw-badges{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;margin-left:3px}
+.gw-badge{width:19px;height:19px;display:inline-grid;place-items:center;flex:none;filter:drop-shadow(0 1px 2px #0005)}
+.gw-badge svg{width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.gw-badge-blue{border-radius:50%;background:radial-gradient(circle at 32% 25%,#7fd4ff,#29a8f0 58%,#0b7fd4);box-shadow:inset 0 1px 3px #ffffff80,inset 0 -2px 4px #064b8a80}
+.gw-badge-purple{border-radius:6px 6px 8px 8px;background:linear-gradient(145deg,#d98bff,#8b2fd6 60%,#6a1fa8);clip-path:polygon(8% 0,92% 0,100% 12%,96% 78%,50% 100%,4% 78%,0 12%);box-shadow:inset 0 1px 3px #ffffff80}
 /* ===== 3. MI PERFIL + MENÚ ===== */
 .cover{height:130px;background:#8fa5b1;margin:0 4px}
 .ph{position:relative;height:56px;margin:0 4px}
@@ -364,8 +370,15 @@ mq.addEventListener('change', () => themeMode === 'device' && applyTheme('device
 const SUPABASE_URL = 'https://uyhcocdknweqvcqgbnez.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_rXN8tl3lJec0UKRiQYWAUA_0iP042hp';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
-let currentUser = null, currentProfile = null, authReady = false;
+let currentUser = null, currentProfile = null, currentBadges = [], authReady = false;
 const rolNombre = () => ({ astroturista: 'Astroturista', estrella: 'Estrella creativa' }[currentProfile?.rol] || 'Astroturista');
+function insigniasMarkup(badges = currentBadges) {
+  const keys = new Set((badges || []).map(b => typeof b === 'string' ? b : b.badge_key));
+  let html = '<span class="gw-badges" aria-label="Insignias de la cuenta">';
+  if (keys.has('verified_creator_star')) html += '<span class="gw-badge gw-badge-blue" role="img" aria-label="Estrella Creadora verificada" title="Estrella Creadora · Verificada por GeffenWeverse"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19.5 7"/></svg></span>';
+  if (keys.has('verified_plan_paid')) html += '<span class="gw-badge gw-badge-purple" role="img" aria-label="Plan de pago activo" title="Plan de pago activo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h10a2 2 0 0 1 2 2v13H5v-13a2 2 0 0 1 2-2Z"/><path d="M9 3h6v3H9zM8.5 11l1.5 1.5 2.5-2.5M8.5 16l1.5 1.5 2.5-2.5"/></svg></span>';
+  return html + '</span>';
+}
 const Auth = {
   redirectUrl() { if (location.protocol === 'file:') throw new Error('Abre GeffenWeverse desde una dirección web (localhost o HTTPS) para usar la autenticación.'); return location.origin + location.pathname; },
   mensajeError(error) {
@@ -379,11 +392,14 @@ const Auth = {
     return error?.message||'No se pudo completar la operación. Inténtalo de nuevo.';
   },
   async sync(session,event='INITIAL_SESSION') {
-    currentUser=session?.user||null; currentProfile=null;
+    currentUser=session?.user||null; currentProfile=null; currentBadges=[];
     if(currentUser) {
       const {data,error}=await supabaseClient.from('profiles').select('id, username, display_name, bio, avatar_url, banner_url, rol, created_at').eq('id',currentUser.id).maybeSingle();
       if(error) console.error('No se pudo cargar el perfil:',error);
       currentProfile=data||null;
+      const {data:badgeRows,error:badgeError}=await supabaseClient.from('user_badges').select('badge_key').eq('user_id',currentUser.id);
+      if(badgeError) console.error('No se pudieron cargar las insignias:',badgeError);
+      currentBadges=badgeRows||[];
       const displayName=currentUser.user_metadata?.display_name;
       if(currentProfile&&!currentProfile.display_name&&displayName) {
         const {data:updated,error:updateError}=await supabaseClient.from('profiles').update({display_name:displayName}).eq('id',currentUser.id).select('id, username, display_name, bio, avatar_url, banner_url, rol, created_at').maybeSingle();
@@ -701,12 +717,12 @@ const pages = {
     <header class="bar"><h1 style="font-size:18px">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}<span class="mu" style="font-weight:400;margin:2px 0 0">Perfil de GeffenWeverse</span></h1><a href="#menu" class="mbtn" aria-label="Abrir menú">${I('menu')}</a></header>
     <div class="cover gw-profile-cover" role="img" aria-label="Banner de perfil">${currentProfile?.banner_url ? `<img src="${esc(currentProfile.banner_url)}" alt="">` : ''}</div>
     <div class="ph"><div class="avl gw-profile-avatar" role="img" aria-label="Foto de perfil">${currentProfile?.avatar_url ? `<img src="${esc(currentProfile.avatar_url)}" alt="">` : ''}</div><button class="edit" type="button" data-profile-edit>Editar perfil</button></div>
-    <section class="info"><div class="nm">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}</div><div class="mu" style="font-size:13px;margin:0 0 8px">@${esc(currentProfile?.username || currentUser?.id?.slice(0,10) || 'usuario')} · <span class="pill">${rolNombre()}</span></div>
+    <section class="info"><div class="nm">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}${insigniasMarkup()}</div><div class="mu" style="font-size:13px;margin:0 0 8px">@${esc(currentProfile?.username || currentUser?.id?.slice(0,10) || 'usuario')} · <span class="pill">${rolNombre()}</span></div>
       <p class="mu" style="font-size:14px">${esc(currentProfile?.bio || 'Añade una biografía a tu perfil.')}</p>
       <div class="meta"><span>${I('pin')}Ubicación</span><span>${I('cal')}Se unió en ${currentProfile?.created_at ? new Date(currentProfile.created_at).getFullYear() : '—'}</span></div>
       <div class="cnt"><a href="#siguiendo"><b>256</b> Siguiendo</a><a href="#seguidores"><b>165</b> Seguidores</a></div></section>
     <div class="ptabs"><span class="on">Publicaciones</span><span>Respuestas</span><span>Multimedia</span><span>Me gusta</span></div>
-    <section class="post"><span class="av"></span><div style="flex:1"><div class="h"><strong>Profile Name</strong><svg class="ok" style="width:15px;height:15px"><use href="#ok"/></svg>@username · 32m</div>
+    <section class="post"><span class="av"></span><div style="flex:1"><div class="h"><strong>Profile Name</strong>${insigniasMarkup()}@username · 32m</div>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Hic nihil fuit, quod quaereremus.</p>
       <div class="a"><span>${I('cmt')}568k</span><span>${I('rt')}75k</span><span>${I('heart')}157</span>${I('share')}</div></div></section>
     ${nav('perfil')}

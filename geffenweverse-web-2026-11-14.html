@@ -63,6 +63,21 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
 
 /* ===== Insignias oficiales de GeffenWeverse ===== */
 .gw-badges{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;margin-left:3px}
+.gw-admin-wrap{max-width:760px;margin:0 auto;padding:10px 10px 90px}
+.gw-admin-head{display:flex;align-items:center;gap:12px;margin:8px 0 18px}
+.gw-admin-head h1{font-size:20px}.gw-admin-head p{color:var(--mu);font-size:12px;margin-top:3px}
+.gw-admin-search{display:flex;gap:8px;margin:12px 0}
+.gw-admin-search input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--tx)}
+.gw-admin-search button,.gw-admin-action{border-radius:10px;padding:10px 13px;background:#123d54;color:#d9f5ff;font-weight:700}
+.gw-admin-user{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
+.gw-admin-user:last-child{border-bottom:0}
+.gw-admin-user-main{flex:1;min-width:0}.gw-admin-user-main b{display:block;overflow-wrap:anywhere}
+.gw-admin-user-main small{display:block;color:var(--mu);margin-top:3px}
+.gw-admin-actions{display:flex;gap:6px;flex-wrap:wrap}
+.gw-admin-action.revoke{background:#51252b;color:#ffe0e2}
+.gw-admin-action:disabled{opacity:.4;cursor:not-allowed}
+.gw-admin-state{color:var(--mu);padding:18px 4px;text-align:center}
+
 .gw-badge{width:19px;height:19px;display:inline-grid;place-items:center;flex:none;filter:drop-shadow(0 1px 2px #0005)}
 .gw-badge svg{width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .gw-badge-blue{border-radius:50%;background:radial-gradient(circle at 32% 25%,#7fd4ff,#29a8f0 58%,#0b7fd4);box-shadow:inset 0 1px 3px #ffffff80,inset 0 -2px 4px #064b8a80}
@@ -370,7 +385,7 @@ mq.addEventListener('change', () => themeMode === 'device' && applyTheme('device
 const SUPABASE_URL = 'https://uyhcocdknweqvcqgbnez.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_rXN8tl3lJec0UKRiQYWAUA_0iP042hp';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
-let currentUser = null, currentProfile = null, currentBadges = [], authReady = false;
+let currentUser = null, currentProfile = null, currentBadges = [], authReady = false, isGeffenAdmin = false;
 const rolNombre = () => ({ astroturista: 'Astroturista', estrella: 'Estrella creativa' }[currentProfile?.rol] || 'Astroturista');
 function insigniasMarkup(badges = currentBadges) {
   const keys = new Set((badges || []).map(b => typeof b === 'string' ? b : b.badge_key));
@@ -400,6 +415,8 @@ const Auth = {
       const {data:badgeRows,error:badgeError}=await supabaseClient.from('user_badges').select('badge_key').eq('user_id',currentUser.id);
       if(badgeError) console.error('No se pudieron cargar las insignias:',badgeError);
       currentBadges=badgeRows||[];
+      const {data:adminFlag,error:adminFlagError}=await supabaseClient.rpc('is_geffen_admin');
+      isGeffenAdmin=!adminFlagError&&adminFlag===true;
       const displayName=currentUser.user_metadata?.display_name;
       if(currentProfile&&!currentProfile.display_name&&displayName) {
         const {data:updated,error:updateError}=await supabaseClient.from('profiles').update({display_name:displayName}).eq('id',currentUser.id).select('id, username, display_name, bio, avatar_url, banner_url, rol, created_at').maybeSingle();
@@ -681,6 +698,7 @@ const row = (href, icon, bg, txt) => {
 const rowG = (href, icon, txt) => row(href, icon, '#5a5a5a', txt);
 
 const pages = {
+  admin: () => adminPage(),
   inicio: () => `<div class="wrap">
     <header class="hd"><span style="display:flex;align-items:center"><a class="cart" href="#pedidos" data-tip="Geffen Shop" aria-label="Geffen Shop">${I('cart')}</a><span class="logo">GEFFENWEVERSE</span></span><span class="ic"><div class="radio-wrap"><button class="radio ${radioOn() ? 'on' : 'off'}" type="button" data-radio-panel aria-expanded="false" aria-label="Abrir controles de GEFFEN RADIO" title="GEFFEN RADIO">${I('live')}</button><div class="radio-panel" data-radio-panel-content hidden><div class="radio-station" data-radio-station>GEFFEN RADIO · Preparando emisoras…</div><div class="radio-actions"><button type="button" data-radio-prev aria-label="Emisora anterior">⏪</button><button type="button" data-radio-volume aria-label="Volumen">🎚️</button><button type="button" data-radio-next aria-label="Siguiente emisora">⏭️</button></div><div class="radio-volume" data-radio-volume-panel hidden><input type="range" min="0" max="100" value="35" data-radio-volume-range aria-label="Volumen de radio"><div class="radio-source">Emisoras internacionales · Radio Browser</div></div></div></div><a href="#buscar" aria-label="Buscar">${I('search')}</a><a class="bell" href="#avisos" aria-label="Notificaciones">${I('bell')}${sinLeer() ? `<span class="dot">${sinLeer()}</span>` : ''}</a></span></header>
     <nav class="tabs" aria-label="Secciones"><a href="#inicio">Inicio</a><a href="#siguiendo">Siguiendo</a><a href="#artistas">Artistas</a><a href="#comunidades">Comunidades</a><a href="#inicio" data-act="media">MULTIMEDIA</a></nav>
@@ -722,9 +740,7 @@ const pages = {
       <div class="meta"><span>${I('pin')}Ubicación</span><span>${I('cal')}Se unió en ${currentProfile?.created_at ? new Date(currentProfile.created_at).getFullYear() : '—'}</span></div>
       <div class="cnt"><a href="#siguiendo"><b>256</b> Siguiendo</a><a href="#seguidores"><b>165</b> Seguidores</a></div></section>
     <div class="ptabs"><span class="on">Publicaciones</span><span>Respuestas</span><span>Multimedia</span><span>Me gusta</span></div>
-    <section class="post"><span class="av"></span><div style="flex:1"><div class="h"><strong>Profile Name</strong>@username · 32m</div>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Hic nihil fuit, quod quaereremus.</p>
-      <div class="a"><span>${I('cmt')}568k</span><span>${I('rt')}75k</span><span>${I('heart')}157</span>${I('share')}</div></div></section>
+    <section class="card" id="gw-profile-posts"><p class="mu" style="text-align:center;padding:18px 0">Cargando publicaciones…</p></section>
     ${nav('perfil')}
     <div class="gw-profile-modal" data-profile-modal hidden><section class="gw-profile-editor" role="dialog" aria-modal="true" aria-labelledby="gw-profile-title">
       <div class="gw-profile-editor-head"><div><h2 id="gw-profile-title">Editar perfil</h2><p>Personaliza tu presencia en GeffenWeverse</p></div><button type="button" data-profile-close aria-label="Cerrar">✕</button></div>
@@ -742,7 +758,7 @@ const pages = {
   /* Pantalla del menú (se abre con las dos rayitas del perfil). Activos: pedidos y configuración */
   menu: () => `<div class="wrap"><header class="bar"><a href="#perfil" data-back aria-label="Volver">${I('back')}</a><h1>Menú</h1></header>
     <section class="card cols"><div>${row('#pedidos', 'bag', '#2dd4bf', 'Historial de pedidos de la tienda<small>Geffen Shop</small>')}${row('#temas', 'star', '#d4af37', 'Temas')}${row('#geffennie', 'star', '#2563eb', 'Geffennie')}${row('#eventos', 'cal', '#34d399', 'Solicitud de eventos')}</div>
-      <div>${row('#codigo', 'card', '#c084fc', 'Ingresar el código digital')}${row('#cupones', 'card', '#10b981', 'Buzón de cupones')}${row('#multimedia', 'doc', '#3b82f6', 'Multimedia comprada')}${row('#configuracion', 'gear', '#6b6b6b', 'Configuración')}${row('#anuncios', 'mega', '#f59e0b', 'Anuncios')}${row('#faq', 'faq', '#a78bfa', 'FAQ')}</div></section>
+      <div>${row('#codigo', 'card', '#c084fc', 'Ingresar el código digital')}${row('#cupones', 'card', '#10b981', 'Buzón de cupones')}${row('#multimedia', 'doc', '#3b82f6', 'Multimedia comprada')}${row('#configuracion', 'gear', '#6b6b6b', 'Configuración')}${row('#anuncios', 'mega', '#f59e0b', 'Anuncios')}${row('#faq', 'faq', '#a78bfa', 'FAQ')}${isGeffenAdmin ? row('#admin', 'shield', '#2563eb', 'Administración de insignias') : ''}</div></section>
     <section class="card"><button class="row" data-act="salir" style="color:#dc2626"><span class="t"><b>Cerrar sesión</b><small>${esc(currentUser?.email || '')}</small></span></button></section>
     <section class="card">${rowG('#spot', 'map', 'GeffenWeverse Spot')}${rowG('#magazine', 'book', 'GeffenWeverse Magazine')}${rowG('#concerts', 'mic', 'GeffenWeverse Concerts')}${rowG('#survey', 'clip', 'GeffenWeverse Survey')}${rowG('#gallery', 'book', 'Gallery · Biblioteca creativa')}</section></div>`,
 
@@ -920,6 +936,53 @@ function auth(modo) {
   return `<div class="ga-page"><main class="ga-main"><div class="ga-card">${welcome}${formSection}</div></main>${footer}</div>`;
 }
 /* ===== 9. ROUTER ===== */
+
+/* ===== Administración de insignias y actividad ===== */
+function adminPage() {
+  if (!isGeffenAdmin) return `<div class="wrap"><section class="card"><b>Acceso restringido</b><p class="mu">Esta sección solo está disponible para administradores autorizados.</p></section></div>`;
+  return `<div class="gw-admin-wrap">
+    <header class="gw-admin-head"><a href="#menu" data-back aria-label="Volver">←</a><div><h1>Administración</h1><p>Gestión de insignias de GeffenWeverse</p></div></header>
+    <section class="card"><h2>Estrella Creadora</h2><p class="mu">Insignia azul otorgada por verificación del equipo. No depende de pagos.</p>
+      <form class="gw-admin-search" id="gw-admin-search"><input id="gw-admin-query" type="search" placeholder="Buscar por nombre de usuario" autocomplete="off"><button type="submit">Buscar</button></form>
+      <div id="gw-admin-results"><p class="gw-admin-state">Busca una cuenta para gestionar su insignia.</p></div>
+    </section>
+  </div>`;
+}
+async function adminLoadUsers() {
+  const host=document.getElementById('gw-admin-results');
+  if(!host || !isGeffenAdmin) return;
+  const q=(document.getElementById('gw-admin-query')?.value||'').trim();
+  if(q.length<2){host.innerHTML='<p class="gw-admin-state">Escribe al menos 2 caracteres del nombre de usuario.</p>';return;}
+  host.innerHTML='<p class="gw-admin-state">Buscando cuentas…</p>';
+  const {data:users,error}=await supabaseClient.from('profiles').select('id,username,display_name,rol').ilike('username','%'+q.replace(/[%_]/g,'')+'%').order('username').limit(20);
+  if(error){host.innerHTML='<p class="gw-admin-state">No se pudieron cargar las cuentas.</p>';return;}
+  if(!users?.length){host.innerHTML='<p class="gw-admin-state">No se encontraron cuentas con ese usuario.</p>';return;}
+  const ids=users.map(u=>u.id);
+  const {data:badges}=await supabaseClient.from('user_badges').select('user_id,badge_key').in('user_id',ids);
+  const map=new Map();
+  (badges||[]).forEach(b=>{if(!map.has(b.user_id))map.set(b.user_id,new Set());map.get(b.user_id).add(b.badge_key);});
+  host.innerHTML=users.map(u=>{
+    const active=map.get(u.id)?.has('verified_creator_star')||false;
+    return `<article class="gw-admin-user"><div class="gw-admin-user-main"><b>${esc(u.display_name||u.username)} ${active?insigniasMarkup(['verified_creator_star']):''}</b><small>@${esc(u.username)} · ${esc(u.rol||'Astroturista')}</small></div><div class="gw-admin-actions"><button class="gw-admin-action" data-admin-badge-action="grant" data-user-id="${esc(u.id)}" ${active?'disabled':''}>Conceder</button><button class="gw-admin-action revoke" data-admin-badge-action="revoke" data-user-id="${esc(u.id)}" ${active?'':'disabled'}>Revocar</button></div></article>`;
+  }).join('');
+}
+async function loadOwnProfilePosts() {
+  const host=document.getElementById('gw-profile-posts');
+  if(!host||!currentUser)return;
+  const {data:posts,error}=await supabaseClient.from('posts').select('id,tipo,texto,media_url,created_at').eq('author_id',currentUser.id).order('created_at',{ascending:false}).limit(30);
+  if(error){host.innerHTML='<p class="mu" style="text-align:center;padding:18px 0">No se pudieron cargar las publicaciones.</p>';return;}
+  if(!posts?.length){host.innerHTML='<p class="mu" style="text-align:center;padding:18px 0">Todavía no hay publicaciones.</p>';return;}
+  const {data:comments}=await supabaseClient.from('comments').select('id,post_id,author_id,texto,created_at').in('post_id',posts.map(p=>p.id)).order('created_at',{ascending:true});
+  const authorIds=[...new Set([currentUser.id,...(comments||[]).map(c=>c.author_id)])];
+  const {data:authorBadges}=await supabaseClient.from('user_badges').select('user_id,badge_key').in('user_id',authorIds);
+  const badgeMap=new Map();
+  (authorBadges||[]).forEach(b=>{if(!badgeMap.has(b.user_id))badgeMap.set(b.user_id,[]);badgeMap.get(b.user_id).push(b.badge_key);});
+  host.innerHTML=posts.map(p=>{
+    const rows=(comments||[]).filter(c=>c.post_id===p.id);
+    return `<article class="post"><div style="flex:1"><div class="h"><strong>${esc(currentProfile?.display_name||'Mi perfil')}</strong> ${insigniasMarkup(badgeMap.get(currentUser.id)||[])} <span class="mu">@${esc(currentProfile?.username||'usuario')} · ${new Date(p.created_at).toLocaleDateString('es')}</span></div><p>${esc(p.texto||'')}</p>${p.media_url?`<img src="${esc(p.media_url)}" alt="Contenido de la publicación" style="max-width:100%;border-radius:12px;margin-top:8px">`:''}<div class="a"><span>${I('cmt')}${rows.length} comentarios</span></div><div class="gw-post-comments">${rows.map(c=>`<div class="gw-admin-user"><div class="gw-admin-user-main"><b>${esc(c.author_id===currentUser.id?(currentProfile?.display_name||'Mi perfil'):'Miembro')} ${insigniasMarkup(badgeMap.get(c.author_id)||[])}</b><small>${esc(c.texto)} · ${new Date(c.created_at).toLocaleDateString('es')}</small></div></div>`).join('')}</div></div></article>`;
+  }).join('');
+}
+
 function render() {
   const r = location.hash.slice(1) || 'inicio';
   if (!authReady) { $('#app').innerHTML = '<div class="auth-loading">Conectando de forma segura con GeffenWeverse…</div>'; return; }
@@ -929,6 +992,8 @@ function render() {
   const page = pages[r] || (r.startsWith('wiki-') ? () => wiki(r.slice(5)) : r.startsWith('merch-') ? () => merchPage(r.slice(6)) : pages.inicio);
   $('#app').innerHTML = page();
   applyPrefs();
+  if (r === 'admin') adminLoadUsers();
+  if (r === 'perfil') loadOwnProfilePosts();
   if (r === 'buscar') { const q = $('#q'); if (q) q.focus(); }
   window.scrollTo(0, 0);
 }
@@ -1016,6 +1081,24 @@ async function saveProfile(form) {
     else toast(error?.message||'No se pudo guardar el perfil.');
   } finally { if(submit.isConnected){submit.disabled=false;submit.textContent='Guardar cambios';} }
 }
+
+
+document.addEventListener('submit',e=>{
+  if(e.target?.id==='gw-admin-search'){e.preventDefault();adminLoadUsers();}
+});
+document.addEventListener('click',async e=>{
+  const action=e.target.closest('[data-admin-badge-action]');
+  if(!action)return;
+  if(!isGeffenAdmin)return toast('No tienes permisos de administración.');
+  const userId=action.dataset.userId, mode=action.dataset.adminBadgeAction;
+  action.disabled=true;
+  const rpc=mode==='grant'?'admin_award_profile_badge':'admin_revoke_profile_badge';
+  const args={target_user_id:userId,requested_badge_key:'verified_creator_star'};
+  const {error}=await supabaseClient.rpc(rpc,args);
+  if(error){toast(error.message||'No se pudo actualizar la insignia.');action.disabled=false;return;}
+  toast(mode==='grant'?'Insignia concedida.':'Insignia revocada.');
+  adminLoadUsers();
+});
 
 /* ===== 10. EVENTOS ===== */
 /* Acciones de botones con data-act */

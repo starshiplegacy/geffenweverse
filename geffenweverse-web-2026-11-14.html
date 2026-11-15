@@ -527,7 +527,7 @@ const SUPABASE_URL = 'https://uyhcocdknweqvcqgbnez.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_rXN8tl3lJec0UKRiQYWAUA_0iP042hp';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 let currentUser = null, currentProfile = null, currentBadges = [], authReady = false, isGeffenAdmin = false, isGeffenWhitelisted = false;
-const rolNombre = () => ({ astroturista: 'Astroturista', estrella: 'Estrella creativa' }[currentProfile?.rol] || 'Astroturista');
+const rolNombre = (profile = currentProfile, badges = currentBadges) => { const keys = new Set((badges || []).map(b => typeof b === 'string' ? b : b.badge_key)); return keys.has('verified_creator_star') || profile?.rol === 'estrella' ? 'Estrella Creadora' : 'Astroturista'; };
 function socialLinksMarkup(links = {}) {
   const labels = {instagram:'Instagram',tiktok:'TikTok',x:'X',youtube:'YouTube',spotify:'Spotify',website:'Sitio web'};
   return Object.entries(labels).filter(([key]) => {
@@ -900,7 +900,7 @@ const pages = {
     <div class="gw-profile-modal" data-profile-modal hidden><section class="gw-profile-editor" role="dialog" aria-modal="true" aria-labelledby="gw-profile-title">
       <div class="gw-profile-editor-head"><div><h2 id="gw-profile-title">Editar perfil</h2><p>Personaliza tu presencia en GeffenWeverse</p></div><button type="button" data-profile-close aria-label="Cerrar">✕</button></div>
       <form data-profile-form>
-        <div class="gw-profile-role-card"><span class="gw-profile-role-icon">✦</span><div><b>Tipo de cuenta</b><strong>${rolNombre()}</strong><small>${currentProfile?.rol === 'estrella' ? 'Tu cuenta tiene permisos de Estrella creativa.' : 'Tu cuenta comienza como Astroturista. El acceso a Estrella creativa requiere aprobación del equipo de GeffenWeverse.'}</small></div></div>
+        <div class="gw-profile-role-card"><span class="gw-profile-role-icon">✦</span><div><b>Tipo de cuenta</b><strong>${rolNombre()}</strong><small>${currentProfile?.rol === 'estrella' ? 'Tu cuenta tiene permisos de Estrella Creadora.' : currentBadges.some(b => (typeof b === 'string' ? b : b.badge_key) === 'verified_creator_star') ? 'Tu cuenta tiene la verificación Estrella Creadora. Los permisos de publicación se administran por separado.' : 'Tu cuenta comienza como Astroturista. La verificación Estrella Creadora requiere aprobación del equipo de GeffenWeverse.'}</small></div></div>
         <label class="gw-profile-label">Foto de perfil</label><div class="gw-profile-upload-row"><div class="gw-profile-preview avatar" data-avatar-preview>${currentProfile?.avatar_url ? `<img src="${esc(currentProfile.avatar_url)}" alt="">` : '＋'}</div><div class="gw-profile-upload-copy"><input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"><small>JPG, PNG o WebP · recorte y ajuste automático a 800 × 800 px. Se centra automáticamente.</small></div></div>
         <label class="gw-profile-label">Banner</label><div class="gw-profile-banner-preview" data-banner-preview>${currentProfile?.banner_url ? `<img src="${esc(currentProfile.banner_url)}" alt="">` : 'Vista previa del banner'}</div><input type="file" name="banner" accept="image/jpeg,image/png,image/webp"><small class="gw-profile-help">JPG, PNG o WebP · ajuste automático a 1500 × 500 px, con recorte centrado.</small>
         <label class="gw-profile-label" for="gw-profile-name">Nombre</label><input class="inp" id="gw-profile-name" name="display_name" maxlength="80" value="${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || '')}" required>
@@ -1169,7 +1169,7 @@ async function adminLoadUsers() {
   (badges||[]).forEach(b=>{if(!map.has(b.user_id))map.set(b.user_id,new Set());map.get(b.user_id).add(b.badge_key);});
   host.innerHTML=users.map(u=>{
     const active=map.get(u.id)?.has('verified_creator_star')||false;
-    return `<article class="gw-admin-user"><div class="gw-admin-user-main"><b>${esc(u.display_name||u.username)} ${active?insigniasMarkup(['verified_creator_star']):''}</b><small>@${esc(u.username)} · ${esc(u.rol||'Astroturista')}</small></div><div class="gw-admin-actions"><button class="gw-admin-action" data-admin-badge-action="grant" data-user-id="${esc(u.id)}" ${active?'disabled':''}>Conceder</button><button class="gw-admin-action revoke" data-admin-badge-action="revoke" data-user-id="${esc(u.id)}" ${active?'':'disabled'}>Revocar</button></div></article>`;
+    return `<article class="gw-admin-user"><div class="gw-admin-user-main"><b>${esc(u.display_name||u.username)} ${active?insigniasMarkup(['verified_creator_star']):''}</b><small>@${esc(u.username)} · ${esc(rolNombre(u, map.get(u.id)||[]))}</small></div><div class="gw-admin-actions"><button class="gw-admin-action" data-admin-badge-action="grant" data-user-id="${esc(u.id)}" ${active?'disabled':''}>Conceder</button><button class="gw-admin-action revoke" data-admin-badge-action="revoke" data-user-id="${esc(u.id)}" ${active?'':'disabled'}>Revocar</button></div></article>`;
   }).join('');
 }
 async function loadOwnProfilePosts() {

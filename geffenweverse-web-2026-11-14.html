@@ -375,12 +375,12 @@ const Auth = {
   async sync(session,event='INITIAL_SESSION') {
     currentUser=session?.user||null; currentProfile=null;
     if(currentUser) {
-      const {data,error}=await supabaseClient.from('profiles').select('id, username, display_name, bio, avatar_url, rol, created_at').eq('id',currentUser.id).maybeSingle();
+      const {data,error}=await supabaseClient.from('profiles').select('id, username, display_name, bio, avatar_url, banner_url, rol, created_at').eq('id',currentUser.id).maybeSingle();
       if(error) console.error('No se pudo cargar el perfil:',error);
       currentProfile=data||null;
       const displayName=currentUser.user_metadata?.display_name;
       if(currentProfile&&!currentProfile.display_name&&displayName) {
-        const {data:updated,error:updateError}=await supabaseClient.from('profiles').update({display_name:displayName}).eq('id',currentUser.id).select('id, username, display_name, bio, avatar_url, rol, created_at').maybeSingle();
+        const {data:updated,error:updateError}=await supabaseClient.from('profiles').update({display_name:displayName}).eq('id',currentUser.id).select('id, username, display_name, bio, avatar_url, banner_url, rol, created_at').maybeSingle();
         if(!updateError&&updated) currentProfile=updated;
       }
     }

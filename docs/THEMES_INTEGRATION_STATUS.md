@@ -26,3 +26,11 @@ La extensión espera que `geffenweverse-web-2026-11-14.html` cargue primero y de
 7. Solo después de que exista un flujo de pago en servidor, probar sandbox de PayPal, webhook/Edge Function, idempotencia, RLS y conciliación de estados.
 
 Esta lista es una guía; la comprobación HTTP y visual de la pantalla inicial no acredita que todas las rutas, las políticas remotas, la mensajería autenticada o el pago hayan sido probados.
+
+## Presentación de temas adquiridos
+
+- Los pedidos autenticados se leen desde `orders` con sus `order_items`; RLS limita la consulta a los pedidos de la cuenta actual.
+- Un tema solo se considera adquirido cuando el pedido está en estado `Pagado` o `Completado`; en **Mis Pedidos** el artículo se marca como **Adquirido**.
+- Los temas adquiridos aparecen como opciones seleccionables en **Configuración → Temas del dispositivo**, junto a **Blanco**, **Negro** y **Del dispositivo**.
+- La selección de un tema comprado se guarda localmente por cuenta; volver a elegir una de las tres opciones predeterminadas desactiva el tema comprado.
+- Esto no habilita el checkout: el catálogo sigue siendo informativo y no permite realizar nuevas compras hasta contar con verificación de pago del lado del servidor.

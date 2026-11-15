@@ -313,6 +313,118 @@ button.radio.on{color:#22c55e}button.radio.off{color:#3b82f6}
 .gw-profile-role-card b{font-size:11px}.gw-profile-role-card strong{font-size:13px}.gw-profile-role-card small{font-size:10px;line-height:1.45;color:var(--mu)}
 
 </style>
+
+<style id="gw-responsive-system">
+/* ===== GEFFENWEVERSE RESPONSIVE SYSTEM ===== */
+:root{--gw-content:1120px;--gw-gutter:clamp(12px,3vw,28px)}
+html{width:100%;overflow-x:clip;scroll-behavior:smooth}
+body{width:100%;max-width:100%;overflow-x:clip;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+img,video,iframe,svg,canvas{max-width:100%}
+img,video{height:auto}
+button,input,select,textarea{max-width:100%;font:inherit}
+input,textarea,select{min-width:0}
+.wrap,.gw-admin-wrap,.shop{width:min(100% - (var(--gw-gutter)*2),var(--gw-content));margin-inline:auto}
+.wrap{padding-inline:0}
+.shop{padding-inline:var(--gw-gutter)}
+.card,.post,.welcome-notice,.gw-profile-editor,.gw-gallery-hero,.gw-gallery-card{min-width:0}
+.cols,.lg2,.ga-welcome{min-width:0}
+.cols>* ,.lg2>*{min-width:0}
+.photo img,.feed img,.gw-gallery-card img{width:100%;height:100%;object-fit:cover}
+video,iframe{display:block;width:100%;aspect-ratio:16/9}
+:where(p,h1,h2,h3,h4,small,strong,a,span,button){overflow-wrap:anywhere}
+:where(.tabs,.chips,.stabs,.ptabs,.tools,.gw-admin-actions){min-width:0}
+:where(.tabs,.chips,.stabs){scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+:where(.tabs,.chips,.stabs) a,:where(.tabs,.chips,.stabs) button{flex:0 0 auto}
+.nav{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
+button,a,input,select,textarea{touch-action:manipulation}
+@media(min-width:1200px){
+  :root{--gw-content:1160px}
+  body{font-size:14px}
+  .wrap{padding-top:14px;padding-bottom:104px}
+  .card{padding:18px;border-radius:16px}
+  .nav{max-width:1160px}
+}
+@media(min-width:768px) and (max-width:1199px){
+  :root{--gw-gutter:20px}
+  .wrap{max-width:900px}
+  .shop{max-width:1080px;padding-top:clamp(30px,5vw,52px)}
+  .nav{max-width:900px}
+}
+@media(max-width:767px){
+  :root{--gw-gutter:12px}
+  body{font-size:14px}
+  .wrap{padding-top:6px;padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+  .hd{padding:10px 12px;gap:10px}
+  .hd .ic{gap:12px}
+  .tabs{gap:12px;padding:12px;white-space:nowrap}
+  .feat{overflow-x:auto;scrollbar-width:none}
+  .feat::-webkit-scrollbar{display:none}
+  .card{padding:13px;border-radius:13px}
+  .cols,.lg2{grid-template-columns:minmax(0,1fr)!important;gap:14px}
+  .ga-welcome{grid-template-columns:minmax(0,1fr)!important;gap:24px}
+  .gw-admin-wrap{padding:12px 0 calc(90px + env(safe-area-inset-bottom,0px))}
+  .gw-admin-user{align-items:flex-start;flex-wrap:wrap}
+  .gw-admin-actions{width:100%}
+  .gw-admin-action{flex:1 1 auto;min-height:42px}
+  .shop{padding:28px var(--gw-gutter) calc(90px + env(safe-area-inset-bottom,0px))}
+  .shop h1{font-size:clamp(22px,6vw,28px)}
+  .sbar{gap:8px;padding:8px var(--gw-gutter)}
+  .sbar>div{flex-wrap:wrap;gap:4px}
+  .sbar a,.sbar button{padding:6px 8px}
+  .fila{align-items:stretch}
+  .tools{width:100%;justify-content:flex-start}
+  .tools>*{flex:1 1 auto}
+  .gw-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gw-gallery-hero{min-width:0}
+  .shorts{width:100%;max-width:480px;height:calc(100dvh - 58px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+  .short{padding:14px 12px calc(18px + env(safe-area-inset-bottom,0px))}
+  .nav{padding-top:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+  .cover{height:clamp(100px,28vw,160px)}
+  .avl{width:88px;height:88px;top:-44px}
+  .nm{font-size:clamp(19px,5vw,23px);flex-wrap:wrap}
+  .meta,.cnt{flex-wrap:wrap;row-gap:8px}
+  .ptabs{overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
+  .ptabs>*{flex:0 0 auto;min-width:88px}
+  .post{gap:9px;padding:12px 4px}
+  .post .h{flex-wrap:wrap}
+  .radio-panel{right:0;max-width:calc(100vw - 24px)}
+  .gw-profile-editor{width:100%;max-height:calc(100dvh - 24px);padding:14px}
+}
+@media(max-width:480px){
+  :root{--gw-gutter:10px}
+  .gw-gallery-grid{grid-template-columns:minmax(0,1fr)}
+  .gw-gallery-hero{padding:16px}
+  .gw-gallery-hero h2{font-size:clamp(21px,7vw,26px)}
+  .vids{gap:6px}
+  .vids div{border-radius:9px}
+  .gw-admin-search{flex-wrap:wrap}
+  .gw-admin-search input{flex-basis:100%;min-height:44px}
+  .gw-admin-search button{min-height:42px}
+  .sbox{padding:9px 11px}
+  .bar{gap:10px;padding:12px 4px}
+  .bar h1{font-size:clamp(19px,6vw,22px)}
+  .lcard{padding:24px 16px!important}
+  .auth-loading{margin:40px auto;padding:20px}
+  .gw-profile-editor-head h2{font-size:17px}
+}
+@media(max-width:360px){
+  .hd{padding-inline:9px}
+  .hd .ic{gap:8px}
+  .tabs{gap:9px;font-size:11px}
+  .card{padding:11px}
+  .nav{font-size:11px}
+  .nav a{min-width:0}
+  .gw-badge{width:17px;height:17px}
+}
+@media(hover:none){
+  .cart::after{display:none}
+  a:hover,button:hover{filter:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+
 </head>
 <body>
 

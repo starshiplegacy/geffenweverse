@@ -3,11 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0; url=geffenweverse-web-2026-11-14.html">
   <title>GeffenWeverse</title>
-  <script>window.location.replace('geffenweverse-web-2026-11-14.html');</script>
 </head>
 <body>
-  <p>Abriendo GeffenWeverse… <a href="geffenweverse-web-2026-11-14.html">Continuar</a></p>
+  <p>Abriendo GeffenWeverse…</p>
+  <script>
+    /* Carga el HTML oficial sin modificarlo y le añade gw-extensions.js al final. Requiere servirse por HTTP(S). */
+    fetch('geffenweverse-web-2026-11-14.html').then(r => { if (!r.ok) throw 0; return r.text(); })
+      .then(h => { document.open(); document.write(h.replace('</body>', '<script src="gw-extensions.js"><\/script></body>')); document.close(); })
+      .catch(() => location.replace('geffenweverse-web-2026-11-14.html'));
+  </script>
 </body>
 </html>

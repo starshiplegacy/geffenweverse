@@ -546,14 +546,8 @@ function resultados(q, tipo) {
 /* ===== NOTIFICACIONES (conecta tu backend) =====
    tipos: follow (te siguieron) | starlight (explosión de Starlight = Like en tu publicación o comentario)
           comentario (comentaron tu publicación) | respuesta (respondieron tu comentario) */
-const avisos = [
-  { id: 'n1', tipo: 'follow', usuario: 'Username 1', hace: 'hace 2 min' },
-  { id: 'n2', tipo: 'starlight', usuario: 'Seguidor 1', objetivo: 'tu publicación', hace: 'hace 10 min' },
-  { id: 'n3', tipo: 'comentario', usuario: 'Username 2', texto: '¡Qué bonito!', hace: 'hace 25 min' },
-  { id: 'n4', tipo: 'respuesta', usuario: 'Seguidor 2', texto: 'Totalmente de acuerdo', hace: 'hace 1 h' },
-  { id: 'n5', tipo: 'starlight', usuario: 'Username 3', objetivo: 'tu comentario', hace: 'hace 3 h' },
-  { id: 'n6', tipo: 'follow', usuario: 'Seguidor 3', hace: 'ayer' }
-];
+// Sin notificaciones de demostración. Se mostrarán cuando lleguen datos reales del backend.
+const avisos = [];
 let avisosTipo = 'todo';
 const leidas = () => J.get('avisos-leidos', []);
 const sinLeer = () => avisos.filter(n => !leidas().includes(n.id)).length;

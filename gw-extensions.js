@@ -101,7 +101,11 @@
             estado: o.estado,
             metodo: o.metodo || null,
             total: usd(o.total),
-            articulos: items.map(item => item.nombre + (item.cantidad > 1 ? ' x' + item.cantidad : '')).join(', ') || 'Sin artículos'
+            articulos: items.map(item => {
+              const tema = TEMAS.find(t => nombreProducto(t) === item.nombre);
+              const adquirido = PAGADOS.has(o.estado) && !!tema;
+              return item.nombre + (item.cantidad > 1 ? ' x' + item.cantidad : '') + (adquirido ? ' · Adquirido' : '');
+            }).join(', ') || 'Sin artículos'
           };
         });
 
@@ -124,7 +128,7 @@
           loadingFor = null;
           aplicarTema();
           const route = location.hash.slice(1);
-          if (['pedidos', 'temas', 'tienda-temas'].includes(route)) render();
+          if (['pedidos', 'temas', 'tienda-temas', 'configuracion'].includes(route)) render();
         }
       }
     })();
@@ -160,17 +164,40 @@
     if (typeof original === 'function') pages[key] = (...args) => fn(original(...args));
   };
   envolver('comprar', html => html.replace('<section class="card faq">', `<section class="card"><a class="usr" href="#tienda-temas"><span class="av g3"></span><div style="flex:1"><b>Catálogo de temas</b><span class="mu">Compras desactivadas temporalmente</span></div>${I('chev', 'chev')}</a></section><section class="card faq">`));
-  envolver('configuracion', html => radioFix(html).replace('<section class="card"><h2>Configuración de complementos</h2>', `<section class="card"><h2>Temas</h2><a class="row" href="#temas"><span class="t"><b>Mis temas</b><small>Consulta los temas adquiridos</small></span>${I('chev', 'chev')}</a></section><section class="card"><h2>Lumina Awards</h2><a class="row" href="#lumina-awards"><span class="t"><b>Lumina Awards</b><small>Premios Oficiales de STARSHIP</small></span>${I('star', 'chev')}</a></section><section class="card"><h2>Configuración de complementos</h2>`));
+  const temasDispositivo = () => {
+    const activo = J.get(claveActivo(), null);
+    const opcionBase = (modo, icono, nombre, detalle = '') =>
+      `<button class="row" type="button" role="radio" data-theme-opt="${modo}" aria-checked="${!activo && themeMode === modo}">${I(icono)}<span class="t"><b>${nombre}</b>${detalle ? `<small>${detalle}</small>` : ''}</span><span class="rd"></span></button>`;
+    const opcionesCompradas = TEMAS.filter(t => owned.has(t.key)).map(t =>
+      `<button class="row" type="button" role="radio" data-gw-tema="${t.key}" aria-checked="${activo === t.key}"><span aria-hidden="true" style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,${t.vars['--bg']},${t.vars['--ac']});border:1px solid ${t.vars['--line']};flex:none"></span><span class="t"><b>${esc(t.nombre)}</b><small>Tema adquirido</small></span><span class="rd"></span></button>`
+    ).join('');
+    return `<section class="card"><h2>Temas del dispositivo</h2><p class="mu" style="margin:12px 0 0">Elige la apariencia de GeffenWeverse.</p><div role="radiogroup" aria-label="Temas del dispositivo">${opcionBase('light', 'sun', 'Blanco')}${opcionBase('dark', 'moon', 'Negro')}${opcionBase('device', 'half', 'Del dispositivo', 'Usa el modo configurado en tu dispositivo.')}${opcionesCompradas || '<p class="mu" style="padding:10px 0">Los temas que adquieras aparecerán aquí.</p>'}</div></section>`;
+  };
+
+  envolver('configuracion', html => {
+    html = radioFix(html);
+    const pantalla = new RegExp('<section class="card"><h2>Configuración de complementos<\\/h2><p class="mu" style="margin:12px 0 0">Pantalla<\\/p>\\s*<div role="radiogroup" aria-label="Modo de pantalla">[\\s\\S]*?<\\/div><\\/section>');
+    html = html.replace(pantalla, temasDispositivo());
+    return html.replace('<section class="card"><h2>Configuración de notificaciones y servicios</h2>', `<section class="card"><h2>Temas</h2><a class="row" href="#temas"><span class="t"><b>Mis temas</b><small>Consulta los temas adquiridos</small></span>${I('chev', 'chev')}</a></section><section class="card"><h2>Lumina Awards</h2><a class="row" href="#lumina-awards"><span class="t"><b>Lumina Awards</b><small>Premios Oficiales de STARSHIP</small></span>${I('star', 'chev')}</a></section><section class="card"><h2>Configuración de notificaciones y servicios</h2>`);
+  });
   ['inicio', 'feed', 'menu'].forEach(key => envolver(key, radioFix));
 
   document.addEventListener('click', event => {
     const retry = event.target.closest('[data-gw-retry]');
     if (retry) { cargarPedidos(true); return; }
+    const baseOption = event.target.closest('[data-theme-opt]');
+    if (baseOption) {
+      J.set(claveActivo(), null);
+      limpiarTema();
+      document.querySelectorAll('[data-gw-tema]').forEach(x => x.setAttribute('aria-checked', 'false'));
+      return;
+    }
     const button = event.target.closest('[data-gw-tema]');
     if (!button) return;
     const key = button.dataset.gwTema;
     if (key && !owned.has(key)) { toast('Este tema no está disponible en tu cuenta.'); return; }
     J.set(claveActivo(), key || null);
+    if (key) document.querySelectorAll('[data-theme-opt]').forEach(x => x.setAttribute('aria-checked', 'false'));
     aplicarTema();
     render();
     toast(key ? 'Tema aplicado' : 'Tema predeterminado');
@@ -178,7 +205,7 @@
 
   addEventListener('hashchange', () => {
     const route = location.hash.slice(1);
-    if (['pedidos', 'temas', 'tienda-temas'].includes(route)) cargarPedidos(false);
+    if (['pedidos', 'temas', 'tienda-temas', 'configuracion'].includes(route)) cargarPedidos(false);
   });
 
   try {

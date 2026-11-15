@@ -143,6 +143,8 @@
   // El catálogo no se agrega a productos: wishlist/checkout no deben insinuar compras habilitadas.
   pages['tienda-temas'] = () => `<div class="lt">${tiendaTop('comprar')}<main class="shop"><div class="fila"><div><h1>Temas</h1><p class="mu" style="margin:6px 0 0">Catálogo informativo · las compras están desactivadas temporalmente</p></div>${herramientas(false)}</div><p class="mu" style="margin:14px 0 4px">La compra y activación estarán disponibles cuando el pago se verifique de forma segura en el servidor.</p>${currentUser ? estadoCarga() : '<p class="mu">Inicia sesión para consultar tus temas adquiridos.</p>'}<div class="cols" style="gap:12px;margin-top:10px">${TEMAS.map(tarjetaTema).join('')}</div></main>${upBtn}</div>`;
 
+  pages['lumina-awards'] = () => `<div class="wrap">${barra('Lumina Awards', 'Premios Oficiales de STARSHIP', '#configuracion')}<section class="card" style="text-align:center;padding:28px 20px"><div style="font-size:42px;margin-bottom:12px" aria-hidden="true">🏆</div><h2 style="margin:0 0 10px">Lumina Awards</h2><p class="mu" style="line-height:1.6;margin:0 auto 20px;max-width:420px">Los Premios Oficiales de STARSHIP serán próximamente.</p><button class="pill" type="button" disabled aria-disabled="true" style="min-width:180px;opacity:.65;cursor:not-allowed">Comprar Boleta</button></section></div>`;
+
   pages.temas = () => {
     const activo = J.get(claveActivo(), null);
     const mios = TEMAS.filter(t => owned.has(t.key));
@@ -158,7 +160,7 @@
     if (typeof original === 'function') pages[key] = (...args) => fn(original(...args));
   };
   envolver('comprar', html => html.replace('<section class="card faq">', `<section class="card"><a class="usr" href="#tienda-temas"><span class="av g3"></span><div style="flex:1"><b>Catálogo de temas</b><span class="mu">Compras desactivadas temporalmente</span></div>${I('chev', 'chev')}</a></section><section class="card faq">`));
-  envolver('configuracion', html => radioFix(html).replace('<section class="card"><h2>Configuración de complementos</h2>', `<section class="card"><h2>Temas</h2><a class="row" href="#temas"><span class="t"><b>Mis temas</b><small>Consulta los temas adquiridos</small></span>${I('chev', 'chev')}</a></section><section class="card"><h2>Configuración de complementos</h2>`));
+  envolver('configuracion', html => radioFix(html).replace('<section class="card"><h2>Configuración de complementos</h2>', `<section class="card"><h2>Temas</h2><a class="row" href="#temas"><span class="t"><b>Mis temas</b><small>Consulta los temas adquiridos</small></span>${I('chev', 'chev')}</a></section><section class="card"><h2>Lumina Awards</h2><a class="row" href="#lumina-awards"><span class="t"><b>Lumina Awards</b><small>Premios Oficiales de STARSHIP</small></span>${I('star', 'chev')}</a></section><section class="card"><h2>Configuración de complementos</h2>`));
   ['inicio', 'feed', 'menu'].forEach(key => envolver(key, radioFix));
 
   document.addEventListener('click', event => {

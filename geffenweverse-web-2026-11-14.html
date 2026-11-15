@@ -300,6 +300,12 @@ button.radio.on{color:#22c55e}button.radio.off{color:#3b82f6}
 .gw-profile-upload-copy small,.gw-profile-help{display:block;color:var(--mu);font-size:10px;line-height:1.5;margin-top:6px}
 .gw-profile-banner-preview{width:100%;aspect-ratio:3/1;border-radius:10px;background:#25252a;border:1px solid var(--line);overflow:hidden;display:grid;place-items:center;color:var(--mu);font-size:11px}
 .gw-profile-editor textarea{resize:vertical}
+.gw-social-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gw-social-fields label{font-size:11px;font-weight:700;color:var(--mu)}
+.gw-social-fields .inp{margin-top:5px;font-weight:400}
+.gw-social-links{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.gw-social-link{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:6px 10px;font-size:11px;font-weight:700;color:var(--ac);background:var(--card)}
+@media(max-width:520px){.gw-social-fields{grid-template-columns:1fr}}
 .gw-profile-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
 .gw-profile-form-actions button{padding:10px 16px;border-radius:99px;font-size:11px;font-weight:700}
 .gw-profile-form-actions button[type=button]{border:1px solid var(--line)}
@@ -514,6 +520,15 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_rXN8tl3lJec0UKRiQYWAUA_0iP042hp
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 let currentUser = null, currentProfile = null, currentBadges = [], authReady = false, isGeffenAdmin = false, isGeffenWhitelisted = false;
 const rolNombre = () => ({ astroturista: 'Astroturista', estrella: 'Estrella creativa' }[currentProfile?.rol] || 'Astroturista');
+function socialLinksMarkup(links = {}) {
+  const labels = {instagram:'Instagram',tiktok:'TikTok',x:'X',youtube:'YouTube',spotify:'Spotify',website:'Sitio web'};
+  return Object.entries(labels).filter(([key]) => {
+    try { const u = new URL(String(links?.[key] || '')); return u.protocol === 'https:' && !!u.hostname; } catch { return false; }
+  }).map(([key,label]) => {
+    const u = new URL(String(links[key]));
+    return '<a class="gw-social-link" href="'+esc(u.href)+'" target="_blank" rel="noopener noreferrer">'+label+' ↗</a>';
+  }).join('');
+}
 function insigniasMarkup(badges = currentBadges) {
   const keys = new Set((badges || []).map(b => typeof b === 'string' ? b : b.badge_key));
   let html = '<span class="gw-badges" aria-label="Insignias de la cuenta">';
@@ -538,7 +553,7 @@ const Auth = {
     currentUser=session?.user||null; currentProfile=null; currentBadges=[]; isGeffenAdmin=false; isGeffenWhitelisted=false;
     if(!currentUser) avisos=[];
     if(currentUser) {
-      const {data,error}=await supabaseClient.from('profiles').select('id, username, display_name, bio, avatar_url, banner_url, rol, created_at').eq('id',currentUser.id).maybeSingle();
+      const {data,error}=await supabaseClient.from('profiles').select('id, username, display_name, bio, avatar_url, banner_url, social_links, rol, created_at').eq('id',currentUser.id).maybeSingle();
       if(error) console.error('No se pudo cargar el perfil:',error);
       currentProfile=data||null;
       const {data:badgeRows,error:badgeError}=await supabaseClient.from('user_badges').select('badge_key').eq('user_id',currentUser.id);
@@ -551,7 +566,7 @@ const Auth = {
       isGeffenAdmin=!adminFlagError&&adminFlag===true;
       const displayName=currentUser.user_metadata?.display_name;
       if(currentProfile&&!currentProfile.display_name&&displayName) {
-        const {data:updated,error:updateError}=await supabaseClient.from('profiles').update({display_name:displayName}).eq('id',currentUser.id).select('id, username, display_name, bio, avatar_url, banner_url, rol, created_at').maybeSingle();
+        const {data:updated,error:updateError}=await supabaseClient.from('profiles').update({display_name:displayName}).eq('id',currentUser.id).select('id, username, display_name, bio, avatar_url, banner_url, social_links, rol, created_at').maybeSingle();
         if(!updateError&&updated) currentProfile=updated;
       }
     }
@@ -867,7 +882,7 @@ const pages = {
     <div class="cover gw-profile-cover" role="img" aria-label="Banner de perfil">${currentProfile?.banner_url ? `<img src="${esc(currentProfile.banner_url)}" alt="">` : ''}</div>
     <div class="ph"><div class="avl gw-profile-avatar" role="img" aria-label="Foto de perfil">${currentProfile?.avatar_url ? `<img src="${esc(currentProfile.avatar_url)}" alt="">` : ''}</div><button class="edit" type="button" data-profile-edit>Editar perfil</button></div>
     <section class="info"><div class="nm">${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || 'Mi perfil')}${insigniasMarkup()}</div><div class="mu" style="font-size:13px;margin:0 0 8px">@${esc(currentProfile?.username || currentUser?.id?.slice(0,10) || 'usuario')} · <span class="pill">${rolNombre()}</span></div>
-      <p class="mu" style="font-size:14px">${esc(currentProfile?.bio || 'Añade una biografía a tu perfil.')}</p>
+      <p class="mu" style="font-size:14px">${esc(currentProfile?.bio || 'Añade una biografía a tu perfil.')}</p><div class="gw-social-links">${socialLinksMarkup(currentProfile?.social_links)}</div>
       <div class="meta"><span>${I('pin')}Ubicación</span><span>${I('cal')}Se unió en ${currentProfile?.created_at ? new Date(currentProfile.created_at).getFullYear() : '—'}</span></div>
       <div class="cnt" id="gw-profile-follow-counts"><a href="#siguiendo"><b id="gw-following-count">0</b> Siguiendo</a><a href="#seguidores"><b id="gw-followers-count">0</b> Seguidores</a></div></section>
     <div class="ptabs"><span class="on">Publicaciones</span><span>Respuestas</span><span>Multimedia</span><span>Me gusta</span></div>
@@ -882,13 +897,14 @@ const pages = {
         <label class="gw-profile-label" for="gw-profile-name">Nombre</label><input class="inp" id="gw-profile-name" name="display_name" maxlength="80" value="${esc(currentProfile?.display_name || currentUser?.user_metadata?.display_name || '')}" required>
         <label class="gw-profile-label" for="gw-profile-username">Tu ID / @usuario</label><div class="gw-username-field"><span>@</span><input class="inp" id="gw-profile-username" name="username" maxlength="30" pattern="[A-Za-z0-9_]+" value="${esc(currentProfile?.username || '')}" autocomplete="off" required></div><small class="gw-profile-help">Tu @ se actualizará en todo GeffenWeverse. Debe ser único; solo letras, números y guion bajo.</small>
         <label class="gw-profile-label" for="gw-profile-bio">Biografía</label><textarea class="inp" id="gw-profile-bio" name="bio" maxlength="240" rows="3" placeholder="Cuéntale algo a la comunidad…">${esc(currentProfile?.bio || '')}</textarea>
+        <label class="gw-profile-label">Redes sociales y enlaces</label><p class="gw-profile-help">Añade los enlaces que quieras mostrar en tu perfil. Deben comenzar con https://</p><div class="gw-social-fields"><label>Instagram<input class="inp" type="url" name="social_instagram" placeholder="https://instagram.com/usuario" value="${esc(currentProfile?.social_links?.instagram || '')}"></label><label>TikTok<input class="inp" type="url" name="social_tiktok" placeholder="https://tiktok.com/@usuario" value="${esc(currentProfile?.social_links?.tiktok || '')}"></label><label>X<input class="inp" type="url" name="social_x" placeholder="https://x.com/usuario" value="${esc(currentProfile?.social_links?.x || '')}"></label><label>YouTube<input class="inp" type="url" name="social_youtube" placeholder="https://youtube.com/@canal" value="${esc(currentProfile?.social_links?.youtube || '')}"></label><label>Spotify<input class="inp" type="url" name="social_spotify" placeholder="https://open.spotify.com/artist/..." value="${esc(currentProfile?.social_links?.spotify || '')}"></label><label>Sitio web<input class="inp" type="url" name="social_website" placeholder="https://tusitio.com" value="${esc(currentProfile?.social_links?.website || '')}"></label></div>
         <div class="gw-profile-form-actions"><button type="button" data-profile-close>Cancelar</button><button type="submit">Guardar cambios</button></div>
       </form>
     </section></div></div>`,
 
   /* Pantalla del menú (se abre con las dos rayitas del perfil). Activos: pedidos y configuración */
   menu: () => `<div class="wrap"><header class="bar"><a href="#perfil" data-back aria-label="Volver">${I('back')}</a><h1>Menú</h1></header>
-    <section class="card cols"><div>${row('#pedidos', 'bag', '#2dd4bf', 'Historial de pedidos de la tienda<small>Geffen Shop</small>')}${row('#temas', 'star', '#d4af37', 'Temas')}${row('#geffennie', 'star', '#2563eb', 'Geffennie')}${row('#eventos', 'cal', '#34d399', 'Solicitud de eventos')}</div>
+    <section class="card cols"><div>${row('#pedidos', 'bag', '#2dd4bf', 'Historial de pedidos de la tienda<small>Geffen Shop</small>')}${row('#temas', 'star', '#d4af37', 'Temas')}${row('#artistas', 'book', '#8b5cf6', 'WikiGeffen<small>Enciclopedia de artistas</small>')}${row('#geffennie', 'star', '#2563eb', 'Geffennie')}${row('#eventos', 'cal', '#34d399', 'Solicitud de eventos')}</div>
       <div>${row('#codigo', 'card', '#c084fc', 'Ingresar el código digital')}${row('#cupones', 'card', '#10b981', 'Buzón de cupones')}${row('#multimedia', 'doc', '#3b82f6', 'Multimedia comprada')}${row('#configuracion', 'gear', '#6b6b6b', 'Configuración')}${row('#anuncios', 'mega', '#f59e0b', 'Anuncios')}${row('#faq', 'faq', '#a78bfa', 'FAQ')}${isGeffenAdmin ? row('#admin', 'shield', '#2563eb', 'Administración de insignias') : ''}</div></section>
     <section class="card"><button class="row" data-act="salir" style="color:#dc2626"><span class="t"><b>Cerrar sesión</b><small>${esc(currentUser?.email || '')} ${insigniasMarkup(currentBadges)}</small></span></button></section>
     <section class="card">${rowG('#spot', 'map', 'GeffenWeverse Spot')}${rowG('#magazine', 'book', 'GeffenWeverse Magazine')}${rowG('#concerts', 'mic', 'GeffenWeverse Concerts')}${rowG('#survey', 'clip', 'GeffenWeverse Survey')}${rowG('#gallery', 'book', 'Gallery · Biblioteca creativa')}</section></div>`,
@@ -915,8 +931,8 @@ const pages = {
       : `<section class="empty">${I('alert')}<p>No hay pedidos</p></section>`}</main>
     <button class="up" data-up aria-label="Volver arriba"><svg class="i"><path d="M5 4h14"/><path d="M12 20V9M6 14l6-6 6 6"/></svg></button></div>`,
 
-  artistas: () => `<div class="wrap"><header class="bar"><a href="#inicio" data-back aria-label="Volver">${I('back')}</a><h1>Artistas</h1></header>
-    <section class="card"><b style="font-size:15px">Welcome a “Artists”</b><p class="mu" style="font-size:13px;line-height:1.4;margin-top:6px">Aquí verás todos los artistas relacionados con el conglomerado de Starship Legacy.</p></section>
+  artistas: () => `<div class="wrap"><header class="bar"><a href="#inicio" data-back aria-label="Volver">${I('back')}</a><h1>WikiGeffen</h1></header>
+    <section class="card"><b style="font-size:15px">Bienvenido a WikiGeffen</b><p class="mu" style="font-size:13px;line-height:1.4;margin-top:6px">Enciclopedia de artistas y grupos relacionados con Starship Legacy. Selecciona un perfil para consultar su información.</p></section>
     <section class="card"><p class="mu" style="margin:0 0 4px">Toca un nombre para abrir su WikiGeffen.</p>
       ${artistas.map((a, i) => `<a class="usr" href="#wiki-${a.slug}"><span class="av g${i % 3 + 1}"></span><div style="flex:1"><b>${a.nombre}</b><span class="mu">${a.tipo}</span></div>${I('chev', 'chev')}</a>`).join('')}</section></div>`,
   faq: () => `<div class="wrap"><header class="bar"><a href="#menu" data-back aria-label="Volver">${I('back')}</a><h1>FAQ<span class="mu" style="font-weight:400;font-size:12px;margin:2px 0 0">Preguntas frecuentes</span></h1></header>
@@ -1006,7 +1022,7 @@ async function loadProfileFollowCounts(){const a=document.getElementById('gw-fol
 async function loadFollowList(tipo){const host=document.getElementById('gw-follow-list');if(!host||!currentUser)return;const sig=tipo==='siguiendo';const field=sig?'following_id':'follower_id';const {data:rows,error}=await supabaseClient.from('follows').select('follower_id,following_id,created_at').eq(sig?'follower_id':'following_id',currentUser.id).order('created_at',{ascending:false});if(error){host.innerHTML='<p class="mu">No se pudo cargar la lista. Inténtalo de nuevo.</p>';console.error(error);return;}const ids=(rows||[]).map(r=>r[field]).filter(Boolean);if(!ids.length){host.innerHTML='<p class="mu" style="text-align:center;padding:24px 0">'+(sig?'Aún no sigues a nadie. Descubre personas desde Buscar.':'Aún no tienes seguidores.')+'</p>';return;}const {data:profiles,error:profileError}=await supabaseClient.from('profiles').select('id,username,display_name,avatar_url').in('id',ids);if(profileError){host.innerHTML='<p class="mu">No se pudieron cargar los perfiles.</p>';return;}const people=new Map((profiles||[]).map(p=>[p.id,p]));let following=new Set(sig?ids:[]);if(!sig){const {data:myRows}=await supabaseClient.from('follows').select('following_id').eq('follower_id',currentUser.id).in('following_id',ids);following=new Set((myRows||[]).map(x=>x.following_id));}host.innerHTML=ids.map(id=>people.get(id)).filter(Boolean).map(p=>profileRow(p,following.has(p.id))).join('')||'<p class="mu" style="text-align:center;padding:24px">No hay perfiles disponibles.</p>';}
 async function toggleFollow(targetId,button){if(!currentUser)return toast('Inicia sesión para seguir a alguien.');if(targetId===currentUser.id)return toast('No puedes seguir tu propia cuenta.');const wasFollowing=button.dataset.following==='true';button.disabled=true;try{const result=wasFollowing?await supabaseClient.from('follows').delete().eq('follower_id',currentUser.id).eq('following_id',targetId):await supabaseClient.from('follows').insert({follower_id:currentUser.id,following_id:targetId});if(result.error)throw result.error;toast(wasFollowing?'Dejaste de seguir esta cuenta.':'¡Ahora sigues esta cuenta!');await loadProfileFollowCounts();if(location.hash==='#siguiendo'||location.hash==='#seguidores')await loadFollowList(location.hash.slice(1));if(location.hash==='#buscar')await loadCreatorSearch(document.getElementById('q')?.value||'');if(location.hash==='#usuario-'+targetId)await loadPublicProfile(targetId);if(location.hash==='#avisos')await loadNotifications(true);}catch(error){console.error('No se pudo actualizar el seguimiento:',error);toast(error.message||'No se pudo actualizar el seguimiento.');button.disabled=false;}}
 function userPage(id){return '<div class="wrap"><header class="bar"><a href="#buscar" data-back aria-label="Volver">'+I('back')+'</a><h1>Perfil</h1></header><section class="card" id="gw-public-profile"><p class="mu" style="text-align:center;padding:24px">Cargando perfil…</p></section></div>';}
-async function loadPublicProfile(id){const host=document.getElementById('gw-public-profile');if(!host||!id)return;if(id===currentUser?.id){location.hash='#perfil';return;}const {data:p,error}=await supabaseClient.from('profiles').select('id,username,display_name,bio,avatar_url,banner_url,rol,created_at').eq('id',id).maybeSingle();if(error||!p){host.innerHTML='<p class="mu">No encontramos este perfil.</p>';return;}const [{count:following},{count:followers},{data:badges},{data:relation}]=await Promise.all([supabaseClient.from('follows').select('following_id',{count:'exact',head:true}).eq('follower_id',id),supabaseClient.from('follows').select('follower_id',{count:'exact',head:true}).eq('following_id',id),supabaseClient.from('user_badges').select('badge_key').eq('user_id',id),currentUser?supabaseClient.from('follows').select('following_id').eq('follower_id',currentUser.id).eq('following_id',id).maybeSingle():Promise.resolve({data:null})]);const avatar=p.avatar_url?'<img src="'+esc(p.avatar_url)+'" alt="">':'';host.innerHTML='<div class="gw-public-cover">'+(p.banner_url?'<img src="'+esc(p.banner_url)+'" alt="">':'')+'</div><div class="gw-public-person"><span class="av gw-public-avatar">'+avatar+'</span><div class="gw-public-name"><h2>'+esc(p.display_name||p.username||'Usuario')+'</h2>'+insigniasMarkup(badges||[])+'<p class="mu">@'+esc(p.username||'usuario')+' · '+esc(({estrella:'Estrella creativa',astroturista:'Astroturista'})[p.rol]||'Miembro')+'</p></div>'+followButton(id,!!relation)+'</div><p class="gw-public-bio">'+esc(p.bio||'Este usuario aún no ha añadido una biografía.')+'</p><div class="cnt"><span><b>'+(following||0)+'</b> Siguiendo</span><span><b>'+(followers||0)+'</b> Seguidores</span></div>';}
+async function loadPublicProfile(id){const host=document.getElementById('gw-public-profile');if(!host||!id)return;if(id===currentUser?.id){location.hash='#perfil';return;}const {data:p,error}=await supabaseClient.from('profiles').select('id,username,display_name,bio,avatar_url,banner_url,social_links,rol,created_at').eq('id',id).maybeSingle();if(error||!p){host.innerHTML='<p class="mu">No encontramos este perfil.</p>';return;}const [{count:following},{count:followers},{data:badges},{data:relation}]=await Promise.all([supabaseClient.from('follows').select('following_id',{count:'exact',head:true}).eq('follower_id',id),supabaseClient.from('follows').select('follower_id',{count:'exact',head:true}).eq('following_id',id),supabaseClient.from('user_badges').select('badge_key').eq('user_id',id),currentUser?supabaseClient.from('follows').select('following_id').eq('follower_id',currentUser.id).eq('following_id',id).maybeSingle():Promise.resolve({data:null})]);const avatar=p.avatar_url?'<img src="'+esc(p.avatar_url)+'" alt="">':'';host.innerHTML='<div class="gw-public-cover">'+(p.banner_url?'<img src="'+esc(p.banner_url)+'" alt="">':'')+'</div><div class="gw-public-person"><span class="av gw-public-avatar">'+avatar+'</span><div class="gw-public-name"><h2>'+esc(p.display_name||p.username||'Usuario')+'</h2>'+insigniasMarkup(badges||[])+'<p class="mu">@'+esc(p.username||'usuario')+' · '+esc(({estrella:'Estrella creativa',astroturista:'Astroturista'})[p.rol]||'Miembro')+'</p></div>'+followButton(id,!!relation)+'</div><p class="gw-public-bio">'+esc(p.bio||'Este usuario aún no ha añadido una biografía.')+'</p><div class="gw-social-links">'+socialLinksMarkup(p.social_links)+'</div><div class="cnt"><span><b>'+(following||0)+'</b> Siguiendo</span><span><b>'+(followers||0)+'</b> Seguidores</span></div>';}
 async function loadCreatorSearch(query){const host=document.getElementById('gw-creator-results');if(!host||!currentUser)return;const raw=(query||'').trim();const handleSearch=raw.startsWith('@');const q=(handleSearch?raw.slice(1):raw).trim().replace(/[,%()]/g,'');let request=supabaseClient.from('profiles').select('id,username,display_name,avatar_url').neq('id',currentUser.id).order('created_at',{ascending:false}).limit(20);if(q){if(handleSearch)request=request.ilike('username',q+'%');else request=request.or('username.ilike.%'+q+'%,display_name.ilike.%'+q+'%');}const {data,error}=await request;if(error){host.innerHTML='<section class="card"><p class="mu">No se pudieron buscar personas.</p></section>';return;}const ids=(data||[]).map(p=>p.id);const {data:rels}=ids.length?await supabaseClient.from('follows').select('following_id').eq('follower_id',currentUser.id).in('following_id',ids):{data:[]};const set=new Set((rels||[]).map(r=>r.following_id));host.innerHTML='<section class="card"><h2>'+(q?'Personas encontradas':'Personas en GeffenWeverse')+'</h2>'+(data?.length?data.map(p=>profileRow(p,set.has(p.id))).join(''):'<p class="mu" style="padding:16px 0">No encontramos personas.</p>')+'</section>';}
 document.addEventListener('click',e=>{const button=e.target.closest('[data-follow-user]');if(!button)return;e.preventDefault();e.stopPropagation();toggleFollow(button.dataset.followUser,button);});
 /* WikiGeffen: enciclopedia de cada artista de Starship Legacy (secciones listas para llenar) */
@@ -1234,7 +1250,15 @@ async function saveProfile(form) {
     if(!/^[A-Za-z0-9_]{2,30}$/.test(username)) throw new Error('El nombre de usuario debe tener entre 2 y 30 caracteres y usar solo letras, números o guion bajo.');
     const avatar=form.avatar.files?.[0], banner=form.banner.files?.[0];
     await validateProfileImage(avatar,'avatar'); await validateProfileImage(banner,'banner');
-    const updates={display_name,username,bio};
+    const socialLinks={};
+    for(const key of ['instagram','tiktok','x','youtube','spotify','website']) {
+      const value=String(form.elements['social_'+key]?.value||'').trim();
+      if(!value) continue;
+      let parsed; try { parsed=new URL(value); } catch { throw new Error('Revisa el enlace de '+key+': debe ser una URL válida.'); }
+      if(parsed.protocol!=='https:' || !parsed.hostname) throw new Error('Los enlaces sociales deben comenzar con https://');
+      socialLinks[key]=parsed.href;
+    }
+    const updates={display_name,username,bio,social_links:socialLinks};
     for(const [kind,file] of [['avatar',avatar],['banner',banner]]) {
       if(!file) continue;
       const ext=file.type==='image/png'?'png':'jpg';

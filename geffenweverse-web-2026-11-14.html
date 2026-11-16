@@ -1363,7 +1363,12 @@ async function saveProfile(form) {
     }
     const {data,error}=await supabaseClient.from('profiles').update(updates).eq('id',currentUser.id).select('id,username,display_name,bio,avatar_url,banner_url,social_links,rol,created_at').single();
     if(error) throw error;
-    currentProfile=data; toast('Perfil actualizado correctamente.'); render();
+    const {data:confirmed,error:confirmError}=await supabaseClient.from('profiles').select('id,username,display_name,bio,avatar_url,banner_url,social_links,rol,created_at').eq('id',currentUser.id).maybeSingle();
+    if(confirmError) throw confirmError;
+    if(!confirmed) throw new Error('El perfil se guardó, pero no pudimos volver a cargarlo. Actualiza la página.');
+    currentProfile=confirmed;
+    const modal=document.querySelector('[data-profile-modal]'); if(modal) modal.hidden=true;
+    toast('Perfil actualizado y publicado correctamente.'); render();
   } catch(error) {
     console.error('Error guardando perfil:',error);
     const m=(error?.message||'').toLowerCase();

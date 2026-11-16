@@ -61,6 +61,14 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .welcome-notice b{display:block;font-size:13px}
 .welcome-notice p{margin-top:5px;color:var(--mu);font-size:12px;line-height:1.5}
 
+/* ===== Centro de administración ===== */
+.gw-admin-console{max-width:1080px}.gw-admin-live{margin-left:auto;padding:6px 10px;border-radius:99px;background:#143d32;color:#9ff0c6;font-size:10px;font-weight:900;letter-spacing:.12em}
+.gw-admin-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0 16px}.gw-admin-stat{padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--card)}.gw-admin-stat small{display:block;color:var(--mu);font-size:11px}.gw-admin-stat b{display:block;font-size:24px;margin-top:6px;font-variant-numeric:tabular-nums}
+.gw-admin-tabs{display:flex;gap:7px;overflow-x:auto;padding:3px 0 12px;scrollbar-width:thin}.gw-admin-tabs button{flex:0 0 auto;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--card);color:var(--mu);font-size:12px;font-weight:750}.gw-admin-tabs button.on{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 13%,var(--card));color:var(--tx)}
+.gw-admin-panel{margin-bottom:14px}.gw-admin-panel h2{font-size:17px}.gw-admin-panel-head{display:flex;align-items:center;justify-content:space-between}.gw-admin-moderation-form,.gw-admin-create-form{display:grid;gap:12px;margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--card) 88%,var(--ac) 12%)}.gw-admin-moderation-form h3{margin:0}.gw-admin-moderation-form label,.gw-admin-create-form label{display:grid;gap:6px;font-size:12px;font-weight:700}.gw-admin-moderation-form input,.gw-admin-moderation-form select,.gw-admin-moderation-form textarea,.gw-admin-create-form input,.gw-admin-create-form select,.gw-admin-create-form textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:9px;padding:10px;background:var(--bg);color:var(--tx)}.gw-admin-form-actions{display:flex;gap:8px;justify-content:flex-end}.gw-admin-create-form>button,.gw-admin-danger{border:0;border-radius:9px;padding:11px 14px;background:#9b303b;color:white;font-weight:800}.gw-admin-secondary{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:var(--card);color:var(--tx);font-size:12px;font-weight:700}
+.gw-admin-record{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}.gw-admin-record:last-child{border-bottom:0}.gw-admin-record>div{min-width:0;flex:1}.gw-admin-record p{margin:5px 0;color:var(--tx);font-size:13px;white-space:pre-wrap}.gw-admin-record small{color:var(--mu);font-size:11px}
+@media(max-width:650px){.gw-admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.gw-admin-record{flex-direction:column}.gw-admin-record>.gw-admin-actions{width:100%}.gw-admin-tabs button{padding:9px 10px}}
+
 /* ===== Insignias oficiales de GeffenWeverse ===== */
 .gw-badges{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;margin-left:3px}
 .gw-admin-wrap{max-width:760px;margin:0 auto;padding:10px 10px 90px}
@@ -1194,32 +1202,118 @@ document.addEventListener('click',e=>{const tag=e.target.closest('[data-gw-tag]'
 document.addEventListener('submit',e=>{const form=e.target.closest('[data-gw-post-form]');if(!form)return;e.preventDefault();publishCommunityPost(form);});
 document.addEventListener('submit',async e=>{const form=e.target.closest('[data-gw-comment-form]');if(!form)return;e.preventDefault();if(!currentUser)return toast('Inicia sesión para comentar.');const input=form.elements.texto,button=form.querySelector('button'),texto=input.value.trim();if(!texto)return;button.disabled=true;try{const {error}=await supabaseClient.from('comments').insert({post_id:Number(form.dataset.postId),author_id:currentUser.id,texto});if(error)throw error;input.value='';toast('Comentario publicado.');await loadCommunityFeed();}catch(error){console.error('Error publicando comentario:',error);toast(error.message||'No se pudo publicar el comentario.');}finally{if(button.isConnected)button.disabled=false;}});
 function adminPage() {
-  if (!isGeffenAdmin) return `<div class="wrap"><section class="card"><b>Acceso restringido</b><p class="mu">Esta sección solo está disponible para administradores autorizados.</p></section></div>`;
-  return `<div class="gw-admin-wrap">
-    <header class="gw-admin-head"><a href="#menu" data-back aria-label="Volver">←</a><div><h1>Administración</h1><p>Gestión de insignias de GeffenWeverse</p></div></header>
-    <section class="card"><h2>Estrella Creadora</h2><p class="mu">Insignia azul otorgada por verificación del equipo. No depende de pagos.</p>
-      <form class="gw-admin-search" id="gw-admin-search"><input id="gw-admin-query" type="search" placeholder="Buscar por nombre de usuario" autocomplete="off"><button type="submit">Buscar</button></form>
-      <div id="gw-admin-results"><p class="gw-admin-state">Busca una cuenta para gestionar su insignia.</p></div>
-    </section>
-  </div>`;
+  if (!isGeffenAdmin) return '<div class="wrap"><section class="card"><b>Acceso restringido</b><p class="mu">Esta sección solo está disponible para administradores autorizados.</p></section></div>';
+  return '<div class="gw-admin-wrap gw-admin-console">' +
+    '<header class="gw-admin-head"><a href="#menu" data-back aria-label="Volver">←</a><div><h1>Centro de administración</h1><p>Control y seguridad de GeffenWeverse</p></div><span class="gw-admin-live">ADMIN</span></header>' +
+    '<section class="gw-admin-stats" id="gw-admin-stats"><div class="gw-admin-stat"><small>Miembros</small><b>—</b></div><div class="gw-admin-stat"><small>Publicaciones</small><b>—</b></div><div class="gw-admin-stat"><small>Medidas activas</small><b>—</b></div><div class="gw-admin-stat"><small>Apelaciones</small><b>—</b></div></section>' +
+    '<nav class="gw-admin-tabs" aria-label="Herramientas administrativas">' +
+    '<button class="on" data-admin-tab="users">Usuarios</button><button data-admin-tab="moderation">Moderación</button><button data-admin-tab="appeals">Apelaciones</button><button data-admin-tab="events">Eventos</button><button data-admin-tab="announcements">Anuncios</button><button data-admin-tab="audit">Registro</button><button data-admin-tab="badges">Insignias</button></nav>' +
+    '<section class="card gw-admin-panel" data-admin-panel="users"><div class="gw-admin-panel-head"><div><h2>Gestión de usuarios</h2><p class="mu">Busca cuentas y revisa su estado.</p></div></div>' +
+    '<form class="gw-admin-search" id="gw-admin-search"><input id="gw-admin-query" type="search" placeholder="Buscar por @usuario" autocomplete="off"><button type="submit">Buscar</button></form><div id="gw-admin-results"><p class="gw-admin-state">Busca una cuenta para comenzar.</p></div>' +
+    '<form id="gw-admin-moderation-form" class="gw-admin-moderation-form" hidden><h3>Aplicar medida a <span id="gw-admin-target-name">usuario</span></h3><input type="hidden" name="user_id" id="gw-admin-target-id"><label>Tipo de medida<select name="action_key" required><option value="warning">Advertencia</option><option value="restrict_posting">Restringir publicaciones</option><option value="suspend">Suspender cuenta</option></select></label><label>Motivo<textarea name="reason" rows="3" minlength="5" maxlength="2000" required placeholder="Explica el motivo de la medida"></textarea></label><label>Fin de la medida (opcional)<input type="datetime-local" name="ends_at"></label><div class="gw-admin-form-actions"><button type="button" class="gw-admin-secondary" data-admin-cancel-moderation>Cancelar</button><button type="submit" class="gw-admin-danger">Aplicar medida</button></div></form></section>' +
+    '<section class="card gw-admin-panel" data-admin-panel="moderation" hidden><h2>Moderación activa</h2><p class="mu">Medidas registradas, con motivo y responsable.</p><div id="gw-admin-moderation-list"><p class="gw-admin-state">Cargando…</p></div></section>' +
+    '<section class="card gw-admin-panel" data-admin-panel="appeals" hidden><h2>Apelaciones</h2><p class="mu">Revisa las solicitudes de usuarios sancionados.</p><div id="gw-admin-appeals-list"><p class="gw-admin-state">Cargando…</p></div></section>' +
+    '<section class="card gw-admin-panel" data-admin-panel="events" hidden><h2>Calendario de GeffenWeverse</h2><p class="mu">Conciertos, lanzamientos, cumpleaños y eventos comunitarios.</p><form id="gw-admin-event-form" class="gw-admin-create-form"><label>Nombre del evento<input name="title" required maxlength="140"></label><label>Tipo<select name="event_type"><option value="concert">Concierto</option><option value="release">Lanzamiento</option><option value="birthday">Cumpleaños</option><option value="community">Comunidad</option><option value="other">Otro</option></select></label><label>Fecha y hora<input name="starts_at" type="datetime-local" required></label><label>Descripción<textarea name="description" rows="3" maxlength="5000"></textarea></label><label>Ubicación o enlace<input name="location" placeholder="Opcional"></label><label>URL externa HTTPS<input name="external_url" type="url" placeholder="https://…"></label><button type="submit">Publicar evento</button></form><div id="gw-admin-events-list"><p class="gw-admin-state">Cargando…</p></div></section>' +
+    '<section class="card gw-admin-panel" data-admin-panel="announcements" hidden><h2>Anuncios oficiales</h2><p class="mu">Publica avisos o guarda borradores para la comunidad.</p><form id="gw-admin-announcement-form" class="gw-admin-create-form"><label>Título<input name="titulo" required maxlength="160"></label><label>Mensaje<textarea name="texto" rows="4" required></textarea></label><label>Audiencia<select name="audience"><option value="all">Toda la comunidad</option><option value="artists">Artistas</option><option value="creators">Creadores</option></select></label><label>Publicación<select name="status"><option value="published">Publicar ahora</option><option value="draft">Guardar borrador</option></select></label><button type="submit">Guardar anuncio</button></form><div id="gw-admin-announcements-list"><p class="gw-admin-state">Cargando…</p></div></section>' +
+    '<section class="card gw-admin-panel" data-admin-panel="audit" hidden><h2>Registro administrativo</h2><p class="mu">Historial de acciones realizadas desde el panel.</p><div id="gw-admin-audit-list"><p class="gw-admin-state">Cargando…</p></div></section>' +
+    '<section class="card gw-admin-panel" data-admin-panel="badges" hidden><h2>Insignia Estrella Creadora</h2><p class="mu">Insignia azul concedida por el equipo. No depende de pagos.</p><form class="gw-admin-search" id="gw-admin-badge-search"><input id="gw-admin-badge-query" type="search" placeholder="Buscar por @usuario" autocomplete="off"><button type="submit">Buscar</button></form><div id="gw-admin-badge-results"><p class="gw-admin-state">Busca una cuenta para gestionar su insignia.</p></div></section>' +
+    '</div>';
 }
-async function adminLoadUsers() {
-  const host=document.getElementById('gw-admin-results');
-  if(!host || !isGeffenAdmin) return;
-  const q=(document.getElementById('gw-admin-query')?.value||'').trim();
-  if(q.length<2){host.innerHTML='<p class="gw-admin-state">Escribe al menos 2 caracteres del nombre de usuario.</p>';return;}
+async function adminLoadStats() {
+  if (!isGeffenAdmin) return;
+  const host=document.getElementById('gw-admin-stats'); if(!host)return;
+  const specs=[['profiles','Miembros'],['posts','Publicaciones'],['user_moderation_actions','Medidas activas'],['moderation_appeals','Apelaciones']];
+  const results=await Promise.all(specs.map(async x=>{
+    let q=supabaseClient.from(x[0]).select('*',{count:'exact',head:true});
+    if(x[0]==='user_moderation_actions')q=q.eq('active',true);
+    if(x[0]==='moderation_appeals')q=q.eq('status','pending');
+    const r=await q;return {label:x[1],count:r.count??'—',error:r.error};
+  }));
+  host.innerHTML=results.map(x=>'<div class="gw-admin-stat"><small>'+esc(x.label)+'</small><b>'+esc(String(x.count))+'</b></div>').join('');
+}
+async function adminLoadUsers(target='users') {
+  const host=document.getElementById(target==='badges'?'gw-admin-badge-results':'gw-admin-results');
+  const input=document.getElementById(target==='badges'?'gw-admin-badge-query':'gw-admin-query');
+  if(!host || !isGeffenAdmin)return;
+  const q=(input?.value||'').trim();
+  if(q.length<2){host.innerHTML='<p class="gw-admin-state">Escribe al menos 2 caracteres.</p>';return;}
   host.innerHTML='<p class="gw-admin-state">Buscando cuentas…</p>';
   const {data:users,error}=await supabaseClient.from('profiles').select('id,username,display_name,rol').ilike('username','%'+q.replace(/[%_]/g,'')+'%').order('username').limit(20);
-  if(error){host.innerHTML='<p class="gw-admin-state">No se pudieron cargar las cuentas.</p>';return;}
-  if(!users?.length){host.innerHTML='<p class="gw-admin-state">No se encontraron cuentas con ese usuario.</p>';return;}
+  if(error){host.innerHTML='<p class="gw-admin-state">No se pudieron cargar las cuentas: '+esc(error.message)+'</p>';return;}
+  if(!users?.length){host.innerHTML='<p class="gw-admin-state">No se encontraron cuentas.</p>';return;}
   const ids=users.map(u=>u.id);
-  const {data:badges}=await supabaseClient.from('user_badges').select('user_id,badge_key').in('user_id',ids);
-  const map=new Map();
-  (badges||[]).forEach(b=>{if(!map.has(b.user_id))map.set(b.user_id,new Set());map.get(b.user_id).add(b.badge_key);});
+  const [badgesRes,moderationRes]=await Promise.all([
+    supabaseClient.from('user_badges').select('user_id,badge_key').in('user_id',ids),
+    supabaseClient.from('user_moderation_actions').select('user_id,action_key,active,ends_at').in('user_id',ids).eq('active',true)
+  ]);
+  const badgeMap=new Map(),modMap=new Map();
+  (badgesRes.data||[]).forEach(b=>{if(!badgeMap.has(b.user_id))badgeMap.set(b.user_id,new Set());badgeMap.get(b.user_id).add(b.badge_key);});
+  (moderationRes.data||[]).forEach(m=>{if(!modMap.has(m.user_id))modMap.set(m.user_id,[]);modMap.get(m.user_id).push(m);});
   host.innerHTML=users.map(u=>{
-    const active=map.get(u.id)?.has('verified_creator_star')||false;
-    return `<article class="gw-admin-user"><div class="gw-admin-user-main"><b>${esc(u.display_name||u.username)} ${active?insigniasMarkup(['verified_creator_star']):''}</b><small>@${esc(u.username)} · ${esc(rolNombre(u, map.get(u.id)||[]))}</small></div><div class="gw-admin-actions"><button class="gw-admin-action" data-admin-badge-action="grant" data-user-id="${esc(u.id)}" ${active?'disabled':''}>Conceder</button><button class="gw-admin-action revoke" data-admin-badge-action="revoke" data-user-id="${esc(u.id)}" ${active?'':'disabled'}>Revocar</button></div></article>`;
+    const active=badgeMap.get(u.id)?.has('verified_creator_star')||false, measures=modMap.get(u.id)||[];
+    const suspended=measures.some(m=>m.action_key==='suspend'&&(!m.ends_at||new Date(m.ends_at)>new Date()));
+    return '<article class="gw-admin-user"><div class="gw-admin-user-main"><b>'+esc(u.display_name||u.username)+' '+(active?insigniasMarkup(['verified_creator_star']):'')+'</b><small>@'+esc(u.username)+' · '+esc(rolNombre(u,badgeMap.get(u.id)||[]))+' · '+(suspended?'Cuenta suspendida':measures.length?'Medida activa':'Sin medidas activas')+'</small></div><div class="gw-admin-actions"><button class="gw-admin-action" data-admin-select-user="'+esc(u.id)+'" data-admin-user-name="'+esc(u.display_name||u.username)+'">Moderar</button></div></article>';
   }).join('');
+  if(target==='badges')host.innerHTML=users.map(u=>{
+    const active=badgeMap.get(u.id)?.has('verified_creator_star')||false;
+    return '<article class="gw-admin-user"><div class="gw-admin-user-main"><b>'+esc(u.display_name||u.username)+' '+(active?insigniasMarkup(['verified_creator_star']):'')+'</b><small>@'+esc(u.username)+' · '+esc(rolNombre(u,badgeMap.get(u.id)||[]))+'</small></div><div class="gw-admin-actions"><button class="gw-admin-action" data-admin-badge-action="grant" data-user-id="'+esc(u.id)+'" '+(active?'disabled':'')+'>Conceder</button><button class="gw-admin-action revoke" data-admin-badge-action="revoke" data-user-id="'+esc(u.id)+'" '+(active?'':'disabled')+'>Revocar</button></div></article>';
+  }).join('');
+}
+async function adminLoadModeration(){
+  const host=document.getElementById('gw-admin-moderation-list');if(!host||!isGeffenAdmin)return;
+  const {data,error}=await supabaseClient.from('user_moderation_actions').select('id,user_id,action_key,reason,starts_at,ends_at,active,created_at').order('created_at',{ascending:false}).limit(60);
+  if(error){host.textContent='No se pudo cargar la moderación: '+error.message;return;}
+  if(!data?.length){host.innerHTML='<p class="gw-admin-state">Todavía no hay medidas registradas.</p>';return;}
+  const ids=[...new Set(data.map(x=>x.user_id))],{data:profiles}=await supabaseClient.from('profiles').select('id,username,display_name').in('id',ids),map=new Map((profiles||[]).map(x=>[x.id,x]));
+  const names={warning:'Advertencia',suspend:'Suspensión',restrict_posting:'Restricción de publicaciones'};
+  host.innerHTML=data.map(x=>{const p=map.get(x.user_id)||{};return '<article class="gw-admin-record"><div><b>'+esc(names[x.action_key]||x.action_key)+' · @'+esc(p.username||'usuario')+'</b><p>'+esc(x.reason)+'</p><small>'+new Date(x.created_at).toLocaleString('es')+' · '+(x.active?'Activa':'Cerrada')+(x.ends_at?' · Hasta '+new Date(x.ends_at).toLocaleString('es'):'')+'</small></div>'+(x.active?'<button class="gw-admin-secondary" data-admin-close-measure="'+esc(x.id)+'">Cerrar medida</button>':'')+'</article>';}).join('');
+}
+async function adminLoadAppeals(){
+  const host=document.getElementById('gw-admin-appeals-list');if(!host||!isGeffenAdmin)return;
+  const {data,error}=await supabaseClient.from('moderation_appeals').select('id,action_id,user_id,reason,status,created_at').order('created_at',{ascending:false}).limit(60);
+  if(error){host.textContent='No se pudieron cargar las apelaciones: '+error.message;return;}
+  if(!data?.length){host.innerHTML='<p class="gw-admin-state">No hay apelaciones todavía.</p>';return;}
+  const ids=[...new Set(data.map(x=>x.user_id))],{data:profiles}=await supabaseClient.from('profiles').select('id,username,display_name').in('id',ids),map=new Map((profiles||[]).map(x=>[x.id,x]));
+  host.innerHTML=data.map(x=>{const p=map.get(x.user_id)||{};return '<article class="gw-admin-record"><div><b>@'+esc(p.username||'usuario')+' · '+esc(x.status)+'</b><p>'+esc(x.reason)+'</p><small>'+new Date(x.created_at).toLocaleString('es')+'</small></div>'+(x.status==='pending'?'<div class="gw-admin-actions"><button class="gw-admin-action" data-admin-appeal="'+esc(x.id)+'" data-status="accepted">Aceptar</button><button class="gw-admin-action revoke" data-admin-appeal="'+esc(x.id)+'" data-status="rejected">Rechazar</button><button class="gw-admin-secondary" data-admin-appeal="'+esc(x.id)+'" data-status="needs_info">Pedir datos</button></div>':'')+'</article>';}).join('');
+}
+async function adminLoadAudit(){
+  const host=document.getElementById('gw-admin-audit-list');if(!host||!isGeffenAdmin)return;
+  const {data,error}=await supabaseClient.from('admin_audit_log').select('id,actor_id,action_key,target_type,target_id,details,created_at').order('created_at',{ascending:false}).limit(80);
+  if(error){host.textContent='No se pudo cargar el registro: '+error.message;return;}
+  if(!data?.length){host.innerHTML='<p class="gw-admin-state">Todavía no hay acciones administrativas registradas.</p>';return;}
+  host.innerHTML=data.map(x=>'<article class="gw-admin-record"><div><b>'+esc(x.action_key)+' · '+esc(x.target_type)+'</b><p>'+esc(x.target_id||'Sin identificador')+'</p><small>'+new Date(x.created_at).toLocaleString('es')+' · '+esc(x.actor_id)+'</small></div></article>').join('');
+}
+async function adminLoadEvents(){
+  const host=document.getElementById('gw-admin-events-list');if(!host||!isGeffenAdmin)return;
+  const {data,error}=await supabaseClient.from('platform_events').select('id,title,event_type,starts_at,status,location').order('starts_at',{ascending:true}).limit(60);
+  if(error){host.textContent='No se pudieron cargar los eventos: '+error.message;return;}
+  host.innerHTML=(data||[]).length?(data||[]).map(x=>'<article class="gw-admin-record"><div><b>'+esc(x.title)+'</b><p>'+esc(x.event_type)+' · '+new Date(x.starts_at).toLocaleString('es')+' · '+esc(x.status)+'</p><small>'+esc(x.location||'Sin ubicación')+'</small></div>'+(x.status==='published'?'<button class="gw-admin-secondary" data-admin-cancel-event="'+esc(x.id)+'">Cancelar</button>':'')+'</article>').join(''):'<p class="gw-admin-state">Todavía no hay eventos.</p>';
+}
+async function adminLoadAnnouncements(){
+  const host=document.getElementById('gw-admin-announcements-list');if(!host||!isGeffenAdmin)return;
+  const {data,error}=await supabaseClient.from('announcements').select('id,titulo,texto,status,published_at,audience,created_at').order('created_at',{ascending:false}).limit(60);
+  if(error){host.textContent='No se pudieron cargar los anuncios: '+error.message;return;}
+  host.innerHTML=(data||[]).length?(data||[]).map(x=>'<article class="gw-admin-record"><div><b>'+esc(x.titulo)+'</b><p>'+esc(x.texto)+'</p><small>'+esc(x.status)+' · '+esc(x.audience)+' · '+new Date(x.published_at).toLocaleString('es')+'</small></div></article>').join(''):'<p class="gw-admin-state">Todavía no hay anuncios.</p>';
+}
+function adminSwitchTab(tab){
+  document.querySelectorAll('[data-admin-tab]').forEach(b=>b.classList.toggle('on',b.dataset.adminTab===tab));
+  document.querySelectorAll('[data-admin-panel]').forEach(p=>p.hidden=p.dataset.adminPanel!==tab);
+  if(tab==='moderation')adminLoadModeration();
+  if(tab==='appeals')adminLoadAppeals();
+  if(tab==='events')adminLoadEvents();
+  if(tab==='announcements')adminLoadAnnouncements();
+  if(tab==='audit')adminLoadAudit();
+}
+async function adminCreateEvent(form){
+  const d=new FormData(form),payload={title:String(d.get('title')||'').trim(),description:String(d.get('description')||''),event_type:String(d.get('event_type')),starts_at:new Date(String(d.get('starts_at'))).toISOString(),location:String(d.get('location')||'').trim()||null,external_url:String(d.get('external_url')||'').trim()||null,status:'published',created_by:currentUser.id};
+  if(payload.external_url&&!/^https:\\/\\//i.test(payload.external_url))return toast('El enlace debe comenzar por HTTPS.');
+  const {error}=await supabaseClient.from('platform_events').insert(payload);if(error){toast(error.message||'No se pudo publicar el evento.');return;}
+  form.reset();toast('Evento publicado.');adminLoadEvents();
+}
+async function adminCreateAnnouncement(form){
+  const d=new FormData(form),status=String(d.get('status')),payload={titulo:String(d.get('titulo')||'').trim(),texto:String(d.get('texto')||'').trim(),audience:String(d.get('audience')),status,published_at:new Date().toISOString(),created_by:currentUser.id};
+  const {error}=await supabaseClient.from('announcements').insert(payload);if(error){toast(error.message||'No se pudo guardar el anuncio.');return;}
+  form.reset();toast(status==='published'?'Anuncio publicado.':'Borrador guardado.');adminLoadAnnouncements();
 }
 async function loadOwnProfilePosts() {
   const host=document.getElementById('gw-profile-posts');
@@ -1271,7 +1365,7 @@ function render() {
   const page = pages[r] || (r.startsWith('solicitar-mensaje-') ? () => messageRequestPage(r.slice(18)) : r.startsWith('chat-') ? () => chatPage(r.slice(5)) : r.startsWith('@') ? () => userPage('handle-'+r.slice(1)) : r.startsWith('usuario-') ? () => userPage(r.slice(8)) : r.startsWith('wiki-') ? () => wiki(r.slice(5)) : r.startsWith('merch-') ? () => merchPage(r.slice(6)) : pages.inicio);
   $('#app').innerHTML = page();
   applyPrefs();
-  if (r === 'admin') adminLoadUsers();
+  if (r === 'admin') { adminLoadStats(); adminLoadUsers(); }
   if (r === 'feed') loadCommunityFeed();
   if (r === 'perfil') { loadOwnProfilePosts(); loadProfileFollowCounts(); }
   if (r === 'siguiendo' || r === 'seguidores') loadFollowList(r);
@@ -1383,23 +1477,54 @@ async function saveProfile(form) {
 }
 
 
-document.addEventListener('submit',e=>{
-  if(e.target?.id==='gw-admin-search'){e.preventDefault();adminLoadUsers();}
+document.addEventListener('submit',async e=>{
+  if(e.target?.id==='gw-admin-search'||e.target?.id==='gw-admin-badge-search'){e.preventDefault();adminLoadUsers(e.target.id==='gw-admin-badge-search'?'badges':'users');return;}
+  if(e.target?.id==='gw-admin-moderation-form'){
+    e.preventDefault();if(!isGeffenAdmin||!currentUser)return;
+    const form=e.target,d=new FormData(form),ends=String(d.get('ends_at')||'');
+    const payload={user_id:String(d.get('user_id')),action_key:String(d.get('action_key')),reason:String(d.get('reason')||'').trim(),created_by:currentUser.id,active:true};
+    if(ends){const parsed=new Date(ends);if(Number.isNaN(parsed.getTime())||parsed<=new Date())return toast('La fecha final debe ser futura.');payload.ends_at=parsed.toISOString();}
+    const {error}=await supabaseClient.from('user_moderation_actions').insert(payload);
+    if(error){toast(error.message||'No se pudo aplicar la medida.');return;}
+    toast('Medida registrada correctamente.');form.reset();form.hidden=true;adminLoadUsers();adminLoadStats();adminLoadModeration();return;
+  }
+  if(e.target?.id==='gw-admin-event-form'){e.preventDefault();if(!isGeffenAdmin)return;try{await adminCreateEvent(e.target);}catch(err){toast(err.message||'No se pudo guardar el evento.');}return;}
+  if(e.target?.id==='gw-admin-announcement-form'){e.preventDefault();if(!isGeffenAdmin)return;await adminCreateAnnouncement(e.target);return;}
 });
 document.addEventListener('click',async e=>{
-  const action=e.target.closest('[data-admin-badge-action]');
-  if(!action)return;
+  const tab=e.target.closest('[data-admin-tab]');if(tab){if(!isGeffenAdmin)return;adminSwitchTab(tab.dataset.adminTab);return;}
+  const cancel=e.target.closest('[data-admin-cancel-moderation]');if(cancel){const f=document.getElementById('gw-admin-moderation-form');if(f)f.hidden=true;return;}
+  const select=e.target.closest('[data-admin-select-user]');if(select){
+    const form=document.getElementById('gw-admin-moderation-form');if(form){form.hidden=false;form.querySelector('#gw-admin-target-id').value=select.dataset.adminSelectUser;form.querySelector('#gw-admin-target-name').textContent=select.dataset.adminUserName||'usuario';form.scrollIntoView({behavior:'smooth',block:'center'});}return;
+  }
+  const close=e.target.closest('[data-admin-close-measure]');if(close){
+    if(!isGeffenAdmin)return;close.disabled=true;
+    const {error}=await supabaseClient.from('user_moderation_actions').update({active:false}).eq('id',close.dataset.adminCloseMeasure);
+    if(error){toast(error.message||'No se pudo cerrar la medida.');close.disabled=false;return;}
+    toast('Medida cerrada.');adminLoadModeration();adminLoadStats();return;
+  }
+  const appeal=e.target.closest('[data-admin-appeal]');if(appeal){
+    if(!isGeffenAdmin)return;const status=appeal.dataset.status;
+    const resolution=prompt(status==='accepted'?'Nota de resolución (opcional):':status==='rejected'?'Motivo del rechazo:':'Qué información adicional se necesita:','');
+    if(resolution===null)return;
+    appeal.disabled=true;
+    const {error}=await supabaseClient.from('moderation_appeals').update({status,resolution:resolution||null,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq('id',appeal.dataset.adminAppeal);
+    if(error){toast(error.message||'No se pudo actualizar la apelación.');appeal.disabled=false;return;}
+    toast('Apelación actualizada.');adminLoadAppeals();adminLoadStats();return;
+  }
+  const cancelEvent=e.target.closest('[data-admin-cancel-event]');if(cancelEvent){
+    if(!isGeffenAdmin)return;cancelEvent.disabled=true;
+    const {error}=await supabaseClient.from('platform_events').update({status:'cancelled'}).eq('id',cancelEvent.dataset.adminCancelEvent);
+    if(error){toast(error.message||'No se pudo cancelar el evento.');cancelEvent.disabled=false;return;}
+    toast('Evento cancelado.');adminLoadEvents();return;
+  }
+  const action=e.target.closest('[data-admin-badge-action]');if(!action)return;
   if(!isGeffenAdmin)return toast('No tienes permisos de administración.');
-  const userId=action.dataset.userId, mode=action.dataset.adminBadgeAction;
-  action.disabled=true;
-  const rpc=mode==='grant'?'admin_award_profile_badge':'admin_revoke_profile_badge';
-  const args={target_user_id:userId,requested_badge_key:'verified_creator_star'};
-  const {error}=await supabaseClient.rpc(rpc,args);
+  action.disabled=true;const mode=action.dataset.adminBadgeAction,rpc=mode==='grant'?'admin_award_profile_badge':'admin_revoke_profile_badge';
+  const {error}=await supabaseClient.rpc(rpc,{target_user_id:action.dataset.userId,requested_badge_key:'verified_creator_star'});
   if(error){toast(error.message||'No se pudo actualizar la insignia.');action.disabled=false;return;}
-  toast(mode==='grant'?'Insignia concedida.':'Insignia revocada.');
-  adminLoadUsers();
+  toast(mode==='grant'?'Insignia concedida.':'Insignia revocada.');adminLoadUsers('badges');
 });
-
 /* ===== 10. EVENTOS ===== */
 /* Acciones de botones con data-act */
 const acciones = {

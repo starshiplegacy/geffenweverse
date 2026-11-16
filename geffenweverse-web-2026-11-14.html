@@ -1306,7 +1306,7 @@ function adminSwitchTab(tab){
 }
 async function adminCreateEvent(form){
   const d=new FormData(form),payload={title:String(d.get('title')||'').trim(),description:String(d.get('description')||''),event_type:String(d.get('event_type')),starts_at:new Date(String(d.get('starts_at'))).toISOString(),location:String(d.get('location')||'').trim()||null,external_url:String(d.get('external_url')||'').trim()||null,status:'published',created_by:currentUser.id};
-  if(payload.external_url&&!/^https:\\/\\//i.test(payload.external_url))return toast('El enlace debe comenzar por HTTPS.');
+  if(payload.external_url&&!/^https:\/\//i.test(payload.external_url))return toast('El enlace debe comenzar por HTTPS.');
   const {error}=await supabaseClient.from('platform_events').insert(payload);if(error){toast(error.message||'No se pudo publicar el evento.');return;}
   form.reset();toast('Evento publicado.');adminLoadEvents();
 }

@@ -1357,7 +1357,7 @@ async function adminLoadAnnouncements(){
   const host=document.getElementById('gw-admin-announcements-list');if(!host||!isGeffenAdmin)return;
   const {data,error}=await supabaseClient.from('announcements').select('id,titulo,texto,status,published_at,audience,created_at').order('created_at',{ascending:false}).limit(60);
   if(error){host.textContent='No se pudieron cargar los anuncios: '+error.message;return;}
-  host.innerHTML=(data||[]).length?(data||[]).map(x=>'<article class="gw-admin-record"><div><b>'+esc(x.titulo)+'</b><p>'+esc(x.texto)+'</p><small>'+esc(x.status)+' · '+esc(x.audience)+' · '+new Date(x.published_at).toLocaleString('es')+'</small></div></article>').join(''):'<p class="gw-admin-state">Todavía no hay anuncios.</p>';
+  host.innerHTML=(data||[]).length?(data||[]).map(x=>'<article class="gw-admin-record"><div><b>'+esc(x.titulo)+'</b><p>'+esc(x.texto)+'</p><small>'+esc(x.status)+' · '+esc(x.audience)+' · '+new Date(x.published_at).toLocaleString('es')+'</small></div>'+(x.status==='draft'?'<button data-admin-publish-announcement="'+x.id+'">Publicar ahora</button>':'')+'</article>').join(''):'<p class="gw-admin-state">Todavía no hay anuncios.</p>';
 }
 function adminSwitchTab(tab){
   document.querySelectorAll('[data-admin-tab]').forEach(b=>b.classList.toggle('on',b.dataset.adminTab===tab));
@@ -1585,6 +1585,7 @@ document.addEventListener('click',async e=>{
     if(error){toast(error.message||'No se pudo actualizar la apelación.');appeal.disabled=false;return;}
     toast('Apelación actualizada.');adminLoadAppeals();adminLoadStats();return;
   }
+  const publishAnnouncement=e.target.closest('[data-admin-publish-announcement]');if(publishAnnouncement){if(!isGeffenAdmin)return;publishAnnouncement.disabled=true;const {error}=await supabaseClient.from('announcements').update({status:'published',published_at:new Date().toISOString()}).eq('id',Number(publishAnnouncement.dataset.adminPublishAnnouncement)).eq('status','draft');if(error){toast(error.message);publishAnnouncement.disabled=false;}else{toast('Anuncio publicado y notificaciones enviadas.');adminLoadAnnouncements();}return;}
   const requestEvent=e.target.closest('[data-admin-event-request]');if(requestEvent){if(!isGeffenAdmin)return;const {error}=await supabaseClient.from('event_requests').update({estado:requestEvent.dataset.status}).eq('id',Number(requestEvent.dataset.adminEventRequest));if(error)toast(error.message);else{toast('Solicitud actualizada.');adminLoadEventRequests();}return;}
   const cancelEvent=e.target.closest('[data-admin-cancel-event]');if(cancelEvent){
     if(!isGeffenAdmin)return;cancelEvent.disabled=true;

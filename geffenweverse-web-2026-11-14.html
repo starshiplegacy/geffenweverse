@@ -525,7 +525,219 @@ button,a,input,select,textarea{touch-action:manipulation}
 .gw-chat-compose{position:sticky;bottom:76px;background:var(--bg);padding:10px 0;display:flex;gap:8px;align-items:flex-end}.gw-chat-compose textarea{flex:1;min-height:44px;max-height:130px;border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--card);color:var(--tx);resize:vertical}.gw-chat-compose button{padding:12px 14px;border-radius:12px;background:var(--ac);color:#061018;font-weight:800}
 .gw-request-card{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}.gw-request-actions{margin-top:10px}.gw-request-actions button{padding:8px 12px;border-radius:9px;font-weight:700}.gw-request-actions .reject{border:1px solid var(--line)}
 .gw-member-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.gw-form-control{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--tx);margin:7px 0 12px}.gw-checkbox-list{display:grid;gap:8px;max-height:260px;overflow:auto;padding:8px 0}.gw-checkbox-list label{display:flex;align-items:center;gap:9px;padding:8px;border-bottom:1px solid var(--line)}.gw-count{display:inline-grid;place-items:center;min-width:19px;height:19px;border-radius:20px;background:var(--ac);color:#071018;font-size:10px;font-weight:800;padding:0 5px}
-</style></head>
+</style>
+<style id="gw-device-responsive">
+/* ===== GeffenWeverse: responsive system for desktop, laptop, tablet and mobile ===== */
+:root{
+  --gw-device-gutter:clamp(12px,2.2vw,28px);
+  --gw-device-max:1240px;
+  --gw-device-tap:44px;
+}
+html{
+  min-width:320px;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+  scroll-padding-top:calc(16px + env(safe-area-inset-top,0px));
+}
+body{
+  min-width:320px;
+  min-height:100vh;
+  min-height:100svh;
+  overflow-x:hidden;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,Cantarell,"Noto Sans",Arial,sans-serif;
+}
+#app{min-height:100vh;min-height:100svh}
+img,video,iframe,canvas,svg{max-width:100%}
+input,select,textarea,button{max-width:100%}
+button,a,input,select,textarea{touch-action:manipulation}
+:where(button,a,input,select,textarea,[role="button"]):focus-visible{
+  outline:2px solid var(--ac);
+  outline-offset:3px;
+}
+.wrap,.gw-admin-wrap,.gw-cs-wrap,.shop,.gw-profile-editor{
+  min-width:0;
+}
+.wrap{width:100%}
+.nav{
+  padding-left:max(12px,env(safe-area-inset-left,0px));
+  padding-right:max(12px,env(safe-area-inset-right,0px));
+  padding-bottom:calc(9px + env(safe-area-inset-bottom,0px));
+}
+.card,.gw-cs-card,.gw-admin-stat,.gw-profile-editor{min-width:0}
+:where(.card,.gw-cs-card,.gw-admin-panel,.gw-admin-record,.gw-cs-content-row)>*{min-width:0}
+:where(p,h1,h2,h3,h4,small,b,strong,a,span){overflow-wrap:anywhere}
+.tabs,.ptabs,.gw-admin-tabs,.gw-cs-tabs,.gw-cs-filter,.gw-community-tabs,.chips{
+  overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch;
+}
+:where(.tabs,.ptabs,.gw-admin-tabs,.gw-cs-tabs,.gw-cs-filter,.gw-community-tabs,.chips){
+  scrollbar-width:thin;
+}
+
+/* Large desktop: Windows, macOS, Linux and large external displays */
+@media(min-width:1200px){
+  :root{--gw-device-gutter:clamp(24px,3vw,48px)}
+  body{font-size:14px}
+  .wrap{
+    max-width:1240px;
+    padding:18px var(--gw-device-gutter) 112px;
+  }
+  .hd{padding:14px 18px;gap:20px}
+  .hd .ic{gap:20px}
+  .tabs{gap:clamp(12px,1.4vw,22px);padding:15px 18px;font-size:13px}
+  .feat{padding:8px 18px 16px;gap:9px}
+  .card{padding:18px;border-radius:16px}
+  .cols{column-gap:clamp(24px,3vw,44px)}
+  .nav{
+    width:min(calc(100% - 48px),1240px);
+    max-width:1240px;
+    border:1px solid var(--line);
+    border-bottom:0;
+    border-radius:16px 16px 0 0;
+    box-shadow:0 -10px 34px #00000018;
+    padding-top:12px;
+    padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  }
+  .nav a{min-width:64px;min-height:48px;display:grid;place-items:center}
+  .gw-admin-wrap{max-width:1120px;padding:20px 28px 112px}
+  .gw-cs-wrap{max-width:1240px;padding:20px 28px 112px}
+  .gw-cs-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .gw-cs-stats{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  .gw-profile-editor{max-width:min(760px,calc(100vw - 64px))}
+  .shop{max-width:1240px;margin-inline:auto}
+}
+
+/* Laptop and compact desktop: MacBook, Windows scaling, Linux laptops */
+@media(min-width:768px) and (max-width:1199px){
+  :root{--gw-device-gutter:clamp(18px,3vw,32px)}
+  .wrap{max-width:1080px;padding:14px var(--gw-device-gutter) 104px}
+  .nav{max-width:1080px}
+  .gw-admin-wrap{max-width:1000px;padding:16px 22px 104px}
+  .gw-cs-wrap{max-width:1080px;padding:16px 22px 104px}
+  .gw-profile-editor{max-width:min(700px,calc(100vw - 48px))}
+  .shop{max-width:1080px;margin-inline:auto}
+  .gw-cs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gw-cs-stats{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .card{padding:16px}
+}
+
+/* Tablet portrait and landscape: iPad, Android tablets and foldables */
+@media(min-width:600px) and (max-width:1024px){
+  :root{--gw-device-gutter:clamp(18px,3vw,30px)}
+  .wrap{max-width:980px;padding-inline:var(--gw-device-gutter)}
+  .hd{padding:12px 16px}
+  .tabs{gap:14px;padding-inline:16px}
+  .feat{padding-inline:16px}
+  .cols,.lg2{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  .gw-admin-wrap,.gw-cs-wrap{padding-inline:var(--gw-device-gutter)}
+  .gw-profile-editor{width:min(92vw,720px);max-height:calc(100svh - 32px);overflow:auto}
+  .nav{max-width:980px}
+  .nav a{min-height:48px;min-width:52px;display:grid;place-items:center}
+}
+@media(min-width:768px) and (max-width:1024px) and (orientation:landscape){
+  .wrap{max-width:1040px}
+  .gw-cs-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .gw-admin-stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+/* Phones: iPhone, Samsung Galaxy and other Android devices */
+@media(max-width:767px){
+  html{scroll-padding-top:calc(8px + env(safe-area-inset-top,0px))}
+  body{font-size:14px}
+  .wrap{
+    width:100%;
+    max-width:100%;
+    padding-left:max(10px,env(safe-area-inset-left,0px));
+    padding-right:max(10px,env(safe-area-inset-right,0px));
+    padding-bottom:calc(92px + env(safe-area-inset-bottom,0px));
+  }
+  .hd{padding:10px 12px;min-height:52px}
+  .hd .ic{align-items:center}
+  .hd .ic>a,.hd .ic>button,.cart{min-width:var(--gw-device-tap);min-height:var(--gw-device-tap);display:inline-flex;align-items:center;justify-content:center}
+  .tabs{max-width:100%;padding:10px 12px;gap:12px}
+  .tabs a{min-height:38px;display:inline-flex;align-items:center;flex:0 0 auto}
+  .feat{max-width:100%;overflow-x:auto}
+  .cols,.lg2{grid-template-columns:minmax(0,1fr)!important}
+  .nav{
+    width:100%;
+    max-width:none;
+    left:0;
+    transform:none;
+    min-height:calc(58px + env(safe-area-inset-bottom,0px));
+    padding-top:7px;
+    padding-bottom:calc(7px + env(safe-area-inset-bottom,0px));
+    padding-left:max(8px,env(safe-area-inset-left,0px));
+    padding-right:max(8px,env(safe-area-inset-right,0px));
+  }
+  .nav a{flex:1;min-width:0;min-height:44px;display:grid;place-items:center}
+  .gw-admin-wrap,.gw-cs-wrap{
+    width:100%;
+    max-width:100%;
+    padding-left:12px;
+    padding-right:12px;
+    padding-bottom:calc(96px + env(safe-area-inset-bottom,0px));
+  }
+  .gw-cs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gw-cs-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gw-profile-editor{
+    width:calc(100vw - 20px);
+    max-width:640px;
+    max-height:calc(100svh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    padding:14px;
+  }
+  .gw-profile-editor input,.gw-profile-editor textarea,.gw-profile-editor select,
+  input,select,textarea{font-size:16px}
+  button,.btn2,.gw-cs-btn,.gw-cs-primary,.gw-admin-action{min-height:var(--gw-device-tap)}
+  .shop{width:100%;max-width:100%;padding-left:12px;padding-right:12px}
+  .sbar{padding-left:12px;padding-right:12px}
+  .sbar a,.sbar button{min-height:40px}
+  .radio-panel{max-width:calc(100vw - 24px)}
+  .shorts{height:calc(100svh - 58px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+  .short{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+}
+
+/* Very narrow phones and split-screen windows */
+@media(max-width:380px){
+  :root{--gw-device-gutter:8px}
+  .wrap{padding-left:8px;padding-right:8px}
+  .hd{gap:6px;padding-inline:8px}
+  .logo{font-size:11px}
+  .hd .ic{gap:5px}
+  .tabs{gap:9px;font-size:11px}
+  .gw-cs-grid{grid-template-columns:minmax(0,1fr)}
+  .gw-cs-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gw-profile-editor{width:calc(100vw - 12px);padding:12px}
+}
+
+/* Touchscreens: no hover-only controls; keep controls easy to hit */
+@media(hover:none),(pointer:coarse){
+  a:hover,button:hover{filter:none}
+  button,a,[role="button"]{ -webkit-tap-highlight-color:transparent }
+  .tabs a,.ptabs>*{min-height:40px}
+  .gw-cs-tabs button,.gw-cs-filter button,.gw-admin-tabs button{min-height:42px}
+}
+
+/* Windows high contrast / forced-colors accessibility */
+@media(forced-colors:active){
+  :focus-visible{outline:2px solid Highlight}
+  .card,.gw-cs-card,.gw-admin-stat,.gw-profile-editor{border:1px solid CanvasText}
+  .nav{border-top:1px solid CanvasText}
+}
+
+/* Respect the user's OS-level reduced-motion preference */
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* Safe-area support for notches, home indicators and edge-to-edge displays */
+@supports(padding:max(0px)){
+  .nav{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
+}
+</style>
+</head>
 <body>
 
 <!-- ICONOS (sprite reutilizable) -->

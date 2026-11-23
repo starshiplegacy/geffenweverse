@@ -814,14 +814,14 @@ function haceTiempo(date){const seconds=Math.max(0,Math.floor((Date.now()-new Da
 function updateBellCount(){const bell=document.querySelector('.bell');if(!bell)return;const count=sinLeer();const dot=bell.querySelector('.dot');if(count){if(dot)dot.textContent=count;else bell.insertAdjacentHTML('beforeend','<span class="dot">'+count+'</span>');}else if(dot)dot.remove();}
 async function loadNotifications(renderPage=false){if(!currentUser)return;const {data,error}=await supabaseClient.from('notifications').select('id,user_id,actor_id,tipo,objetivo,texto,leida,created_at').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(100);if(error){console.error('No se pudieron cargar las notificaciones:',error);return;}const actorIds=[...new Set((data||[]).map(n=>n.actor_id).filter(Boolean))];const {data:profiles}=actorIds.length?await supabaseClient.from('profiles').select('id,username,display_name').in('id',actorIds):{data:[]};const people=new Map((profiles||[]).map(p=>[p.id,p]));avisos=(data||[]).map(n=>{const actor=people.get(n.actor_id)||{};return {...n,usuario:actor.display_name||actor.username||'Un usuario',hace:haceTiempo(n.created_at)};});updateBellCount();if(renderPage){const host=document.getElementById('av-lista');if(host)host.innerHTML=listaAvisos(avisosTipo);}}
 function listaAvisos(tipo) {
-  const grupo = { seguidores: ['follow'], publicaciones: ['publicacion'], starlight: ['starlight'], comentarios: ['comentario', 'respuesta'] }[tipo];
+  const grupo = { seguidores: ['follow'], publicaciones: ['publicacion', 'anuncio'], starlight: ['starlight'], comentarios: ['comentario', 'respuesta'] }[tipo];
   const items = avisos.filter(n => !grupo || grupo.includes(n.tipo));
   if (!items.length) return vacio('Aún no tienes notificaciones');
-  const color = { follow: '#60a5fa', starlight: '#facc15', comentario: '#22c55e', respuesta: '#22c55e', publicacion: '#a78bfa' };
-  const icono = { follow: 'user', starlight: 'star', comentario: 'cmt', respuesta: 'cmt', publicacion: 'doc' };
+  const color = { follow: '#60a5fa', starlight: '#facc15', comentario: '#22c55e', respuesta: '#22c55e', publicacion: '#a78bfa', anuncio: '#f59e0b' };
+  const icono = { follow: 'user', starlight: 'star', comentario: 'cmt', respuesta: 'cmt', publicacion: 'doc', anuncio: 'mega' };
   return `<section class="card">${items.map((n, i) => {
-    const txt = { follow: 'empezó a seguirte', starlight: `dio una explosión de Starlight a ${esc(n.objetivo || '')}`, comentario: `comentó en tu publicación: “${esc(n.texto || '')}”`, respuesta: `respondió a tu comentario: “${esc(n.texto || '')}”`, publicacion: `publicó: “${esc(n.texto || 'Nueva publicación')}”` }[n.tipo];
-    const href=(n.tipo==='follow'||n.tipo==='publicacion')&&n.actor_id?'#usuario-'+n.actor_id:'#perfil';
+    const txt = { follow: 'empezó a seguirte', starlight: `dio una explosión de Starlight a ${esc(n.objetivo || '')}`, comentario: `comentó en tu publicación: “${esc(n.texto || '')}”`, respuesta: `respondió a tu comentario: “${esc(n.texto || '')}”`, publicacion: `publicó: “${esc(n.texto || 'Nueva publicación')}”`, anuncio: `publicó un anuncio oficial: “${esc(n.texto || '')}”` }[n.tipo];
+    const href=n.tipo==='anuncio'?'#anuncios':(n.tipo==='follow'||n.tipo==='publicacion')&&n.actor_id?'#usuario-'+n.actor_id:'#perfil';
     return `<a class="usr" href="${href}" data-act="leer" data-id="${n.id}"><span class="av g${i % 3 + 1}" style="position:relative"><span class="nb" style="background:${color[n.tipo]}">${I(icono[n.tipo])}</span></span><div style="flex:1;min-width:0"><span><b style="display:inline">${esc(n.usuario)}</b> ${txt}</span><span class="mu">${n.hace}</span></div>${n.leida ? '' : '<span class="ud"></span>'}</a>`;
   }).join('')}</section>`;
 }

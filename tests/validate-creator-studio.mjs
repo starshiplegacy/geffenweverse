@@ -18,7 +18,7 @@ inlineScripts.forEach((source, index) => new vm.Script(source, { filename: `inli
 new vm.Script(studio, { filename: 'creator-studio.js' });
 
 assert.ok(html.includes('<script src="./creator-studio.js"></script>'), 'Creator Studio script must load');
-assert.ok(html.indexOf('<script src="./creator-studio.js"></script>') > html.indexOf('</script>'), 'Creator Studio script must load after app globals and handlers');
+assert.ok(html.indexOf('<script src="./creator-studio.js"></script>') > html.lastIndexOf('</script>'), 'Creator Studio script must load after app globals and handlers');
 assert.ok(html.includes('"creator-studio": () => window.gwCreatorStudioPage'), 'Creator Studio route must be registered');
 assert.ok(html.includes('shorts: () => window.gwShortsPage'), 'Shorts route must be registered');
 assert.ok(html.includes("if(r==='creator-studio')gwLoadStudio()"), 'Creator Studio route loader must be connected');
@@ -26,7 +26,7 @@ assert.ok(html.includes("if(r==='shorts'&&typeof window.gwLoadShorts==='function
 
 for (const marker of [
   'function gwCreatorStudioPage()', 'function gwLoadStudio()', 'function gwShortsPage()',
-  'function gwLoadShorts()', 'function gwToggleShortStar()', 'data-cs-create-form',
+  'function gwLoadShorts()', 'function gwToggleShortStar()', 'gw-cs-create-form',
   'data-cs-export', 'gw-short-upload-form', 'gw-short-comment', 'data-gw-short-star',
   "rpc('get_creator_analytics'"
 ]) assert.ok(studio.includes(marker), `Missing Creator Studio integration: ${marker}`);

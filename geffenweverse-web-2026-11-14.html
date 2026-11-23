@@ -1553,7 +1553,7 @@ function profileStoragePath(url){
 async function saveProfile(form) {
   if(!currentUser || !currentProfile) return toast('No se pudo cargar tu perfil. Vuelve a iniciar sesión.');
   const submit=form.querySelector('[type=submit]'); submit.disabled=true; submit.textContent='Guardando…';
-  const uploadedPaths=[],previousMedia={avatar:currentProfile.avatar_url,banner:currentProfile.banner_url};
+  const uploadedPaths=[],replacedKinds=[],previousMedia={avatar:currentProfile.avatar_url,banner:currentProfile.banner_url};
   try {
     const display_name=form.elements.display_name.value.trim(), username=form.elements.username.value.trim().replace(/^@+/, '').toLowerCase(), bio=form.elements.bio.value.trim();
     const usernameChanged=username!==String(currentProfile.username||'').toLowerCase(),displayNameChanged=display_name!==String(currentProfile.display_name||'');
@@ -1578,7 +1578,7 @@ async function saveProfile(form) {
       const objectPath=currentUser.id+'/'+kind+'-'+Date.now()+'-'+crypto.randomUUID()+'.'+ext;
       const {error:uploadError}=await supabaseClient.storage.from(PROFILE_MEDIA_BUCKET).upload(objectPath,file,{upsert:false,contentType:file.type,cacheControl:'3600'});
       if(uploadError) throw uploadError;
-      uploadedPaths.push(objectPath);
+      uploadedPaths.push(objectPath);replacedKinds.push(kind);
       const {data}=supabaseClient.storage.from(PROFILE_MEDIA_BUCKET).getPublicUrl(objectPath);
       updates[kind==='avatar'?'avatar_url':'banner_url']=data.publicUrl+'?v='+Date.now();
     }
@@ -1588,7 +1588,7 @@ async function saveProfile(form) {
     if(confirmError) throw confirmError;
     if(!confirmed) throw new Error('El perfil se guardó, pero no pudimos volver a cargarlo. Actualiza la página.');
     currentProfile=confirmed;
-    const oldPaths=['avatar','banner'].map(kind=>profileStoragePath(previousMedia[kind])).filter(Boolean);
+    const oldPaths=replacedKinds.map(kind=>profileStoragePath(previousMedia[kind])).filter(Boolean);
     if(oldPaths.length){const {error:cleanupError}=await supabaseClient.storage.from(PROFILE_MEDIA_BUCKET).remove(oldPaths);if(cleanupError)console.warn('No se pudo limpiar algún archivo de perfil anterior:',cleanupError);}
     uploadedPaths.length=0;
     const modal=document.querySelector('[data-profile-modal]'); if(modal) modal.hidden=true;

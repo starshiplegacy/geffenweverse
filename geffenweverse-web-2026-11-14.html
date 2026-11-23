@@ -1593,7 +1593,190 @@ document.addEventListener('submit',async e=>{
   }
   if(e.target?.id==='gw-admin-event-form'){e.preventDefault();if(!isGeffenAdmin)return;try{await adminCreateEvent(e.target);}catch(err){toast(err.message||'No se pudo guardar el evento.');}return;}
   if(e.target?.id==='gw-admin-announcement-form'){e.preventDefault();if(!isGeffenAdmin)return;await adminCreateAnnouncement(e.target);return;}
-  if(e.target?.id==='gw-admin-music-form'){e.preventDefault();if(!isGeffenAdmin||!currentUser)return;const d=new FormData(e.target),audio=String(d.get('audio_url')||'').trim(),art=String(d.get('artwork_url')||'').trim();if(!/^https:\/\//i.test(url)){if(path)await supabaseClient.storage.from('moments').remove([path]);return toast('Añade un archivo o un enlace HTTPS.');}const {error}=await supabaseClient.from('moments').insert({user_id:currentUser.id,title:String(d.get('title')).trim(),description:String(d.get('description')||''),media_url:url,media_path:path,occurred_at:d.get('occurred_at')?new Date(String(d.get('occurred_at'))+'T12:00:00').toISOString():null,is_public:true});if(error){if(path)await supabaseClient.storage.from('moments').remove([path]);toast(error.message);}else{toast('Momento guardado.');f.reset();gwLoadMoments();}return;}
+  if(e.target?.id==='gw-admin-music-form'){e.preventDefault();if(!isGeffenAdmin||!currentUser)return;const d=new FormData(e.target),audio=String(d.get('audio_url')||'').trim(),art=String(d.get('artwork_url')||'').trim();if(!/^https:\/\//i.test(audio)||(art&&!/^https:\/\//i.test(art)))return toast('Los enlaces de audio y portada deben usar HTTPS.');const payload={title:String(d.get('title')).trim(),artist_name:String(d.get('artist_name')).trim(),audio_url:audio,artwork_url:art||null,release_date:String(d.get('release_date')||'')||null,status:'published',created_by:currentUser.id};const {error}=await supabaseClient.from('geffen_music_tracks').insert(payload);if(error)toast(error.message);else{toast('Lanzamiento añadido a Geffen Music.');e.target.reset();adminLoadMusicAdmin();}return;}
+  if(e.target?.id==='gw-admin-award-form'){e.preventDefault();if(!isGeffenAdmin||!currentUser)return;const d=new FormData(e.target),start=new Date(String(d.get('starts_at'))),end=new Date(String(d.get('ends_at')));if(Number.isNaN(start.getTime())||Number.isNaN(end.getTime())||end<=start)return toast('El cierre debe ser posterior al inicio.');const {error}=await supabaseClient.from('community_awards').insert({title:String(d.get('title')).trim(),description:String(d.get('description')||''),starts_at:start.toISOString(),ends_at:end.toISOString(),status:'published',created_by:currentUser.id});if(error)toast(error.message);else{toast('Votación publicada.');e.target.reset();adminLoadAwardsAdmin();}return;}
+  if(e.target?.id==='gw-admin-achievement-form'){e.preventDefault();if(!isGeffenAdmin||!currentUser)return;const d=new FormData(e.target),user_id=String(d.get('user_id')||'').trim(),achievement_key=String(d.get('achievement_key')||'').trim();if(!/^[0-9a-f-]{36}$/i.test(user_id))return toast('Introduce un ID de usuario válido.');const {error}=await supabaseClient.from('user_achievements').insert({user_id,achievement_key,awarded_by:currentUser.id});if(error)toast(error.message);else{toast('Logro concedido.');e.target.reset();adminLoadAchievements();}return;}
+
+});
+document.addEventListener('click',async e=>{
+  const tab=e.target.closest('[data-admin-tab]');if(tab){if(!isGeffenAdmin)return;adminSwitchTab(tab.dataset.adminTab);return;}
+  const cancel=e.target.closest('[data-admin-cancel-moderation]');if(cancel){const f=document.getElementById('gw-admin-moderation-form');if(f)f.hidden=true;return;}
+  const select=e.target.closest('[data-admin-select-user]');if(select){
+    const form=document.getElementById('gw-admin-moderation-form');if(form){form.hidden=false;form.querySelector('#gw-admin-target-id').value=select.dataset.adminSelectUser;form.querySelector('#gw-admin-target-name').textContent=select.dataset.adminUserName||'usuario';form.scrollIntoView({behavior:'smooth',block:'center'});}return;
+  }
+  const close=e.target.closest('[data-admin-close-measure]');if(close){
+    if(!isGeffenAdmin)return;close.disabled=true;
+    const {error}=await supabaseClient.from('user_moderation_actions').update({active:false}).eq('id',close.dataset.adminCloseMeasure);
+    if(error){toast(error.message||'No se pudo cerrar la medida.');close.disabled=false;return;}
+    toast('Medida cerrada.');adminLoadModeration();adminLoadStats();return;
+  }
+  const appeal=e.target.closest('[data-admin-appeal]');if(appeal){
+    if(!isGeffenAdmin)return;const status=appeal.dataset.status;
+    const resolution=prompt(status==='accepted'?'Nota de resolución (opcional):':status==='rejected'?'Motivo del rechazo:':'Qué información adicional se necesita:','');
+    if(resolution===null)return;
+    appeal.disabled=true;
+    const {error}=await supabaseClient.from('moderation_appeals').update({status,resolution:resolution||null,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq('id',appeal.dataset.adminAppeal);
+    if(error){toast(error.message||'No se pudo actualizar la apelación.');appeal.disabled=false;return;}
+    toast('Apelación actualizada.');adminLoadAppeals();adminLoadStats();return;
+  }
+  const publishAnnouncement=e.target.closest('[data-admin-publish-announcement]');if(publishAnnouncement){if(!isGeffenAdmin)return;publishAnnouncement.disabled=true;const {error}=await supabaseClient.from('announcements').update({status:'published',published_at:new Date().toISOString()}).eq('id',Number(publishAnnouncement.dataset.adminPublishAnnouncement)).eq('status','draft');if(error){toast(error.message);publishAnnouncement.disabled=false;}else{toast('Anuncio publicado y notificaciones enviadas.');adminLoadAnnouncements();}return;}
+  const requestEvent=e.target.closest('[data-admin-event-request]');if(requestEvent){if(!isGeffenAdmin)return;const {error}=await supabaseClient.from('event_requests').update({estado:requestEvent.dataset.status}).eq('id',Number(requestEvent.dataset.adminEventRequest));if(error)toast(error.message);else{toast('Solicitud actualizada.');adminLoadEventRequests();}return;}
+  const cancelEvent=e.target.closest('[data-admin-cancel-event]');if(cancelEvent){
+    if(!isGeffenAdmin)return;cancelEvent.disabled=true;
+    const {error}=await supabaseClient.from('platform_events').update({status:'cancelled'}).eq('id',cancelEvent.dataset.adminCancelEvent);
+    if(error){toast(error.message||'No se pudo cancelar el evento.');cancelEvent.disabled=false;return;}
+    toast('Evento cancelado.');adminLoadEvents();return;
+  }
+  const action=e.target.closest('[data-admin-badge-action]');if(!action)return;
+  if(!isGeffenAdmin)return toast('No tienes permisos de administración.');
+  action.disabled=true;const mode=action.dataset.adminBadgeAction,rpc=mode==='grant'?'admin_award_profile_badge':'admin_revoke_profile_badge';
+  const {error}=await supabaseClient.rpc(rpc,{target_user_id:action.dataset.userId,requested_badge_key:'verified_creator_star'});
+  if(error){toast(error.message||'No se pudo actualizar la insignia.');action.disabled=false;return;}
+  toast(mode==='grant'?'Insignia concedida.':'Insignia revocada.');adminLoadUsers('badges');
+});
+/* ===== 10. EVENTOS ===== */
+/* Acciones de botones con data-act */
+const acciones = {
+  evento() {
+    const n = $('#ev-n').value.trim(), m = $('#ev-m').value.trim();
+    if (!n) return toast('Escribe el nombre del evento');
+    const l = J.get('solicitudes', []);
+    l.unshift({ evento: n, mensaje: m, fecha: new Date().toLocaleDateString('es'), estado: 'Pendiente' });
+    J.set('solicitudes', l); toast('Solicitud enviada'); render();
+  },
+  canje() {
+    const c = $('#cod').value.trim().toUpperCase(), l = J.get('multimedia', []);
+    if (!c) return toast('Escribe un código');
+    if (!codigosValidos[c]) return toast('Código no válido');
+    if (l.some(x => x.codigo === c)) return toast('Ya canjeaste este código');
+    l.unshift({ codigo: c, titulo: codigosValidos[c].titulo, fecha: new Date().toLocaleDateString('es') });
+    J.set('multimedia', l); toast('¡Código canjeado!'); location.hash = '#multimedia';
+  },
+  tipo(t) { buscarTipo = t.dataset.tipo; document.querySelectorAll('.chip2').forEach(c => c.classList.toggle('on', c === t)); $('#res').innerHTML = resultados($('#q').value, buscarTipo); loadCreatorSearch($('#q')?.value||''); },
+  async leer(t) { const id=Number(t.dataset.id);const {error}=await supabaseClient.from('notifications').update({leida:true}).eq('id',id).eq('user_id',currentUser.id);if(!error){const n=avisos.find(x=>x.id===id);if(n)n.leida=true;t.querySelector('.ud')?.remove();updateBellCount();} },
+  async leertodo() { const {error}=await supabaseClient.from('notifications').update({leida:true}).eq('user_id',currentUser.id).eq('leida',false);if(error)toast('No se pudieron marcar como leídas.');else{avisos.forEach(n=>n.leida=true);updateBellCount();render();} },
+  avtipo(t) { avisosTipo = t.dataset.tipo; document.querySelectorAll('.chip2').forEach(c => c.classList.toggle('on', c === t)); $('#av-lista').innerHTML = listaAvisos(avisosTipo); },
+  deseo(t) { const p = productos.find(x => x.id === t.dataset.id); if (!p) return; let d = J.get('deseos', []); const ya = d.some(x => x.id === p.id); d = ya ? d.filter(x => x.id !== p.id) : [...d, p]; J.set('deseos', d); t.classList.toggle('on', !ya); toast(ya ? 'Quitado de tu lista de deseos' : 'Guardado en tu lista de deseos'); },
+  sel(t) { let s = J.get('seleccion', []); s = s.includes(t.dataset.id) ? s.filter(i => i !== t.dataset.id) : [...s, t.dataset.id]; J.set('seleccion', s); },
+  quitar(t) { J.set('deseos', J.get('deseos', []).filter(x => x.id !== t.dataset.id)); J.set('seleccion', J.get('seleccion', []).filter(i => i !== t.dataset.id)); render(); },
+  paypal() { /* TODO: cuenta PayPal Business + backend que cree la orden de pago */ toast('Conecta aquí tu cuenta de PayPal Business para cobrar'); },
+  /* Cerrar sesión: pide confirmación; “Sí” te manda al Login */
+  salir() {
+    const m = document.createElement('div'); m.id = 'modal';
+    m.innerHTML = '<div class="mbox" role="alertdialog" aria-modal="true" aria-label="Cerrar sesión"><b>¿Seguro que quieres salir?</b><div><button class="btn2" data-act="salirsi">Sí</button><button class="btn3" data-act="salirno">No</button></div></div>';
+    document.body.appendChild(m); m.querySelector('.btn3').focus();
+  },
+  salirno() { const m = $('#modal'); if (m) m.remove(); },
+  async salirsi() { const m = $('#modal'); if (m) m.remove(); await Auth.signOut(); },
+  unirse(t) { const s = t.dataset.slug; let m = J.get('comunidades', []); const ya = m.includes(s); m = ya ? m.filter(x => x !== s) : [...m, s]; J.set('comunidades', m); toast(ya ? 'Saliste de la comunidad' : '¡Te uniste a la comunidad!'); render(); },
+  media() { const s = $('#sec-media'); if (s) s.scrollIntoView({ behavior: 'smooth' }); },
+  rol() { toast('Los roles solo pueden asignarse por el equipo administrativo.'); },
+  sstar(t) { let d = J.get('short-stars', []); const id = Number(t.dataset.id), ya = d.includes(id); d = ya ? d.filter(x => x !== id) : [...d, id]; J.set('short-stars', d); t.classList.toggle('on', !ya); t.querySelector('span').textContent = Number(t.dataset.n) + (ya ? 0 : 1); },
+  sseguir(t) { t.textContent = t.textContent === 'Seguir' ? 'Siguiendo' : 'Seguir'; },
+  sproximo() { toast('Próximamente'); },
+  lupa() { const b = $('#sbx'); b.classList.toggle('on'); if (b.classList.contains('on')) $('#qs').focus(); },
+  async copiar(t) { try { await navigator.clipboard.writeText(t.dataset.codigo); toast('Código copiado'); } catch (e) { toast(t.dataset.codigo); } }
+};
+/* Busca mientras escribes */
+document.addEventListener('input', e => {
+  if (e.target.id === 'q') { $('#res').innerHTML = resultados(e.target.value, buscarTipo); loadCreatorSearch(e.target.value); }
+  if (e.target.id === 'gw-feed-search' || e.target.id === 'gw-feed-date') loadCommunityFeed();
+  if (e.target.id === 'qs') { const c = e.target.dataset.cat, q = e.target.value; $('#ps').innerHTML = (c.startsWith('merch-') && !q.trim()) ? merchBase : listaProductos(c, q); } /* búsqueda dentro de la tienda */
+});
+/* Guarda el idioma elegido en las listas desplegables */
+document.addEventListener('change', e => { const s = e.target.closest('select[data-pref]'); if (s) store.set('gw-' + s.dataset.pref, s.value); });
+document.addEventListener('submit', e => {
+  const form=e.target.closest('[data-auth-form]'); if(!form)return; e.preventDefault();
+  const mode=form.dataset.authForm;
+  if(mode==='login') Auth.login(form); else if(mode==='registro') Auth.register(form); else if(mode==='recuperar') Auth.recover(form); else if(mode==='restablecer') Auth.updatePassword(form);
+});
+document.addEventListener('click', e => {
+  const view=e.target.closest('[data-ga-view]');
+  if(view){e.preventDefault();const welcome=$('#ga-welcome'),form=$('#ga-form');if(welcome)welcome.hidden=view.dataset.gaView!=='welcome';if(form)form.hidden=view.dataset.gaView!=='email';if(view.dataset.gaView==='email'){const input=$('#ga-login-email');if(input)input.focus();}return;}
+  const route=e.target.closest('[data-ga-route]');
+  if(route){e.preventDefault();location.hash='#'+route.dataset.gaRoute;return;}
+});
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-profile-edit]')) {
+    const modal=document.querySelector('[data-profile-modal]'); if(modal) modal.hidden=false;
+    const form=modal?.querySelector('[data-profile-form]');
+    if(form){profilePreview(form.avatar,modal.querySelector('[data-avatar-preview]'));profilePreview(form.banner,modal.querySelector('[data-banner-preview]'));}
+    return;
+  }
+  if(e.target.closest('[data-profile-close]')) { const modal=document.querySelector('[data-profile-modal]'); if(modal) modal.hidden=true; return; }
+});
+document.addEventListener('submit', e => {
+  const form=e.target.closest('[data-profile-form]'); if(!form)return;
+  e.preventDefault(); saveProfile(form);
+});
+document.addEventListener('click', e => {
+  /* FAQ tipo acordeón: al abrir una pregunta se cierra la anterior; tocarla de nuevo la cierra */
+  const sm = e.target.closest('.faq summary');
+  if (sm) { document.querySelectorAll('.faq details').forEach(d => { if (d !== sm.parentElement) d.open = false; }); return; }
+  const t = e.target.closest('[data-switch],[data-theme-opt],[data-auth],[data-up],[data-back],[data-replace],[data-act]');
+  if (!t) return;
+  if (t.dataset.act) { acciones[t.dataset.act](t); return; }
+  /* Flecha: vuelve a la pantalla anterior; si no hay (entró directo), va al enlace de respaldo (href) */
+  if (t.hasAttribute('data-back')) {
+    e.preventDefault();
+    if (stack.length > 1) { location.hash = stack[stack.length - 2]; return; }
+    /* Sin historial interno (entró directo o recargó): sube a la pantalla “madre” y deja Inicio detrás, así la flecha nunca rebota */
+    const fb = t.getAttribute('href').slice(1);
+    stack.length = 0; stack.push(...(fb === 'inicio' ? ['inicio'] : ['inicio', fb]));
+    location.hash = fb; return;
+  }
+  /* Pestañas hermanas (Siguiendo/Seguidores): reemplazan la entrada para que la flecha no dé vueltas */
+  if (t.hasAttribute('data-replace')) { e.preventDefault(); replacing = true; location.replace(t.getAttribute('href')); return; }
+  if (t.hasAttribute('data-switch')) { t.setAttribute('aria-checked', String(t.getAttribute('aria-checked') !== 'true')); if (t.dataset.pref) store.set('gw-' + t.dataset.pref, t.getAttribute('aria-checked')); }
+  else if (t.dataset.themeOpt) {
+    themeMode = t.dataset.themeOpt; store.set('gw-theme', themeMode); applyTheme(themeMode);
+    document.querySelectorAll('[data-theme-opt]').forEach(x => x.setAttribute('aria-checked', String(x === t)));
+  } else if (t.dataset.auth) Auth.start(location.hash.slice(1), t.dataset.auth);
+  else window.scrollTo({ top: 0, behavior: 'auto' }); /* sube de golpe */
+});
+
+/* Controles GEFFEN RADIO: el icono solo abre/cierra el panel; apagar está reservado a Ajustes. */
+document.addEventListener('click', e => {
+  const panelButton = e.target.closest('[data-radio-panel]');
+  if (panelButton) {
+    const panel = document.querySelector('[data-radio-panel-content]');
+    if (panel) { panel.hidden = !panel.hidden; panelButton.setAttribute('aria-expanded', String(!panel.hidden)); }
+    if (radioOn() && !radioLoaded) radioLoadCatalog();
+    return;
+  }
+  if (e.target.closest('[data-radio-prev]')) { radioStep(-1); return; }
+  if (e.target.closest('[data-radio-next]')) { radioStep(1); return; }
+  if (e.target.closest('[data-radio-volume]')) {
+    const panel = document.querySelector('[data-radio-volume-panel]');
+    if (panel) panel.hidden = !panel.hidden;
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.matches('[data-radio-volume-range]')) radioAudio.volume = Number(e.target.value) / 100;
+});
+/* El interruptor de radio de Ajustes es el único que puede desactivarla. */
+document.addEventListener('click', e => {
+  const toggle = e.target.closest('[data-switch][data-pref="radio"]');
+  if (toggle) setTimeout(radioEnable, 0);
+});
+</script>
+
+<script>
+
+document.addEventListener('click',async e=>{
+ const fan=e.target.closest('[data-gw-fanclub]');if(fan){const joined=fan.dataset.joined==='true',slug=fan.dataset.gwFanclub;fan.disabled=true;const r=joined?await supabaseClient.from('community_members').delete().eq('user_id',currentUser.id).eq('artist_slug',slug):await supabaseClient.from('community_members').insert({user_id:currentUser.id,artist_slug:slug});if(r.error){toast(r.error.message);fan.disabled=false;}else{toast(joined?'Saliste del Fan Club.':'Te uniste al Fan Club.');gwLoadFanclubs();}return;}
+ const dm=e.target.closest('[data-gw-delete-moment]');if(dm){if(!confirm('¿Eliminar este momento?'))return;const {data:moment,error:readError}=await supabaseClient.from('moments').select('id,media_path').eq('id',dm.dataset.gwDeleteMoment).eq('user_id',currentUser.id).maybeSingle();if(readError||!moment)return toast(readError?.message||'No se encontró el momento.');const {error}=await supabaseClient.from('moments').delete().eq('id',moment.id).eq('user_id',currentUser.id);if(error)toast(error.message);else{if(moment.media_path)await supabaseClient.storage.from('moments').remove([moment.media_path]);gwLoadMoments();}return;}
+ const shareCol=e.target.closest('[data-gw-collection-share]');if(shareCol){const url=location.origin+location.pathname+'#collection-'+shareCol.dataset.gwCollectionShare;try{await navigator.clipboard.writeText(url);toast('Enlace de colección copiado.');}catch{toast(url);}return;}
+ const dc=e.target.closest('[data-gw-collection-delete]');if(dc){if(!confirm('¿Eliminar esta colección?'))return;const {error}=await supabaseClient.from('public_collections').delete().eq('id',dc.dataset.gwCollectionDelete).eq('owner_id',currentUser.id);if(error)toast(error.message);else gwLoadCollections();return;}
+ const pd=e.target.closest('[data-gw-publish-draft]');if(pd){if(!(currentProfile?.rol==='estrella'||isGeffenWhitelisted))return toast('No tienes permisos para publicar.');const {data,error}=await supabaseClient.from('post_drafts').select('id,title,body').eq('id',pd.dataset.gwPublishDraft).eq('user_id',currentUser.id).single();if(error)return toast(error.message);const ins=await supabaseClient.from('posts').insert({author_id:currentUser.id,tipo:'post',titulo:data.title||null,texto:data.body||null,hashtags:extractPostHashtags((data.title||'')+' '+(data.body||''))});if(ins.error)return toast(ins.error.message);const rm=await supabaseClient.from('post_drafts').delete().eq('id',data.id).eq('user_id',currentUser.id);if(rm.error)return toast('Publicado; no se pudo retirar el borrador: '+rm.error.message);toast('Borrador publicado.');gwLoadDrafts();return;}
+ const dd=e.target.closest('[data-gw-delete-draft]');if(dd){const {error}=await supabaseClient.from('post_drafts').delete().eq('id',dd.dataset.gwDeleteDraft).eq('user_id',currentUser.id);if(error)toast(error.message);else gwLoadDrafts();return;}
+ const ps=e.target.closest('[data-gw-publish-scheduled]');if(ps){await gwPublishQueued(ps.dataset.gwPublishScheduled);return;}
+ const cs=e.target.closest('[data-gw-cancel-scheduled]');if(cs){const {error}=await supabaseClient.from('scheduled_posts').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('id',cs.dataset.gwCancelScheduled).eq('user_id',currentUser.id).eq('status','queued');if(error)toast(error.message);else{toast('Programación cancelada.');gwLoadSchedule();}return;}
+});
+document.addEventListener('submit',async e=>{
+ const er=e.target.closest('#gw-event-request-form');if(er){e.preventDefault();const d=new FormData(er),evento=String(d.get('evento')||'').trim(),mensaje=String(d.get('mensaje')||'').trim();if(!evento)return toast('Escribe el nombre del evento.');const {error}=await supabaseClient.from('event_requests').insert({user_id:currentUser.id,evento,mensaje});if(error)toast(error.message);else{toast('Solicitud enviada.');er.reset();gwLoadEventRequests();}return;}
+ const f=e.target;
+ if(f.id==='gw-moment-form'){e.preventDefault();const d=new FormData(f),file=f.elements.media_file.files?.[0];let url=String(d.get('media_url')||'').trim(),path=null;if(file){if(!['image/jpeg','image/png','image/webp','video/mp4','video/webm','video/quicktime'].includes(file.type))return toast('Formato multimedia no permitido.');if(file.size>50*1024*1024)return toast('El archivo supera 50 MB.');const ext=file.type==='video/webm'?'webm':file.type==='video/quicktime'?'mov':file.type==='video/mp4'?'mp4':file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';path=currentUser.id+'/'+crypto.randomUUID()+'.'+ext;const {error:uploadError}=await supabaseClient.storage.from('moments').upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});if(uploadError)return toast(uploadError.message);url=supabaseClient.storage.from('moments').getPublicUrl(path).data.publicUrl;}if(!/^https:\/\//i.test(url)){if(path)await supabaseClient.storage.from('moments').remove([path]);return toast('Añade un archivo o un enlace HTTPS.');}const {error}=await supabaseClient.from('moments').insert({user_id:currentUser.id,title:String(d.get('title')).trim(),description:String(d.get('description')||''),media_url:url,media_path:path,occurred_at:d.get('occurred_at')?new Date(String(d.get('occurred_at'))+'T12:00:00').toISOString():null,is_public:true});if(error){if(path)await supabaseClient.storage.from('moments').remove([path]);toast(error.message);}else{toast('Momento guardado.');f.reset();gwLoadMoments();}return;}
  if(f.id==='gw-ask-form'){e.preventDefault();const question=String(new FormData(f).get('question')||'').trim();const {error}=await supabaseClient.from('profile_questions').insert({profile_id:currentUser.id,author_id:currentUser.id,question});if(error)toast(error.message);else{toast('Pregunta añadida a tu perfil.');f.reset();gwLoadAsk();}return;}
  if(f.matches('[data-gw-answer-form]')){e.preventDefault();const answer=String(new FormData(f).get('answer')||'').trim();const {error}=await supabaseClient.from('profile_answers').insert({question_id:f.dataset.gwAnswerForm,author_id:currentUser.id,answer});if(error)toast(error.message);else{toast('Respuesta publicada.');gwLoadAsk();}return;}
  if(f.id==='gw-collection-form'){e.preventDefault();const d=new FormData(f);const {error}=await supabaseClient.from('public_collections').insert({owner_id:currentUser.id,title:String(d.get('title')).trim(),description:String(d.get('description')||''),is_public:d.get('is_public')==='on'});if(error)toast(error.message);else{toast('Colección creada.');f.reset();gwLoadCollections();}return;}

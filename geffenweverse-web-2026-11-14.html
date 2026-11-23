@@ -1798,8 +1798,9 @@ async function saveProfile(form) {
     if(!display_name || !username) throw new Error('Completa tu nombre y nombre de usuario.');
     if(!/^[a-z0-9_]{3,30}$/.test(username)) throw new Error('El nombre de usuario debe tener entre 3 y 30 caracteres y usar solo letras, números o guion bajo.');
     saveStage='procesamiento de imágenes';
-    const avatarSource=form.elements.namedItem('avatar')?.files?.[0],bannerSource=form.elements.namedItem('banner')?.files?.[0];
-    const avatar=avatarSource?(profileNormalizedFiles.get(form.avatar)||await normalizeProfileImage(avatarSource,'avatar')):null,banner=bannerSource?(profileNormalizedFiles.get(form.banner)||await normalizeProfileImage(bannerSource,'banner')):null;
+    const avatarInput=form.elements.namedItem('avatar'),bannerInput=form.elements.namedItem('banner');
+    const avatarSource=avatarInput?.files?.[0],bannerSource=bannerInput?.files?.[0];
+    const avatar=avatarSource?(profileNormalizedFiles.get(avatarInput)||await normalizeProfileImage(avatarSource,'avatar')):null,banner=bannerSource?(profileNormalizedFiles.get(bannerInput)||await normalizeProfileImage(bannerSource,'banner')):null;
     const socialLinks={};
     for(const key of ['instagram','tiktok','x','youtube','spotify','website']) {
       const value=String(form.elements['social_'+key]?.value||'').trim();
@@ -1965,7 +1966,7 @@ document.addEventListener('click', e => {
   if(e.target.closest('[data-profile-edit]')) {
     const modal=document.querySelector('[data-profile-modal]'); if(modal) modal.hidden=false;
     const form=modal?.querySelector('[data-profile-form]');
-    if(form){profilePreview(form.avatar,modal.querySelector('[data-avatar-preview]'));profilePreview(form.banner,modal.querySelector('[data-banner-preview]'));}
+    if(form){profilePreview(form.elements.namedItem('avatar'),modal.querySelector('[data-avatar-preview]'));profilePreview(form.elements.namedItem('banner'),modal.querySelector('[data-banner-preview]'));}
     return;
   }
   if(e.target.closest('[data-profile-close]')) { const modal=document.querySelector('[data-profile-modal]'); if(modal) modal.hidden=true; return; }

@@ -11,8 +11,9 @@ const migrations = [
   'supabase/migrations/20261123152000_enforce_creator_and_engagement_rls.sql'
 ];
 
-const inlineScripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g)]
-  .map(match => match[1]).filter(source => source.trim());
+const inlineScripts = html.split('<script').slice(1)
+  .map(part => part.slice(part.indexOf('>') + 1, part.indexOf('</script>')))
+  .filter(source => source.trim());
 assert.ok(inlineScripts.length >= 1, 'Expected inline application scripts');
 inlineScripts.forEach((source, index) => new vm.Script(source, { filename: `inline-${index + 1}.js` }));
 new vm.Script(studio, { filename: 'creator-studio.js' });

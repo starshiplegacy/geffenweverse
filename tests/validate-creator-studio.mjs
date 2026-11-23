@@ -28,7 +28,7 @@ assert.ok(html.includes("if(r==='shorts'&&typeof window.gwLoadShorts==='function
 
 for (const marker of [
   'function gwCreatorStudioPage()', 'function gwLoadStudio()', 'function gwShortsPage()',
-  'function gwLoadShorts()', 'function gwToggleShortStar()', 'gw-cs-create-form',
+  'function gwLoadShorts()', 'function gwToggleShortStar(', 'gw-cs-create-form',
   'data-cs-export', 'gw-short-upload-form', 'gw-short-comment', 'data-gw-short-star',
   "rpc('get_creator_analytics'"
 ]) assert.ok(studio.includes(marker), `Missing Creator Studio integration: ${marker}`);

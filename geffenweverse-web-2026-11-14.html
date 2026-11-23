@@ -1643,7 +1643,7 @@ const acciones = {
 /* Busca mientras escribes */
 document.addEventListener('input', e => {
   if (e.target.id === 'q') { $('#res').innerHTML = resultados(e.target.value, buscarTipo); loadCreatorSearch(e.target.value); }
-  if (e.target.id === 'gw-feed-search' || e.target.id === 'gw-feed-date') renderCommunityPosts(gwFeedPosts,new Map(),new Map());
+  if (e.target.id === 'gw-feed-search' || e.target.id === 'gw-feed-date') loadCommunityFeed();
   if (e.target.id === 'qs') { const c = e.target.dataset.cat, q = e.target.value; $('#ps').innerHTML = (c.startsWith('merch-') && !q.trim()) ? merchBase : listaProductos(c, q); } /* búsqueda dentro de la tienda */
 });
 /* Guarda el idioma elegido en las listas desplegables */
